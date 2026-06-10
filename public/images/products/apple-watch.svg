@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900" role="img" aria-label="Apple Watch Series">
+  <rect width="900" height="900" fill="#050505"/>
+  <rect x="390" y="80" width="120" height="230" rx="48" fill="#27272a"/>
+  <rect x="390" y="590" width="120" height="230" rx="48" fill="#27272a"/>
+  <rect x="292" y="272" width="316" height="356" rx="86" fill="#111116" stroke="#71717a" stroke-width="10"/>
+  <rect x="326" y="306" width="248" height="288" rx="58" fill="url(#screen)"/>
+  <circle cx="594" cy="430" r="13" fill="#ff008c"/>
+  <text x="450" y="444" text-anchor="middle" font-family="Arial, sans-serif" font-size="36" font-weight="800" fill="#fff">Watch</text>
+  <text x="450" y="492" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="800" fill="#ff008c">Series</text>
+  <defs>
+    <linearGradient id="screen" x1="326" x2="574" y1="306" y2="594">
+      <stop stop-color="#27272a"/>
+      <stop offset=".48" stop-color="#050505"/>
+      <stop offset="1" stop-color="#ff008c"/>
+    </linearGradient>
+  </defs>
+</svg>

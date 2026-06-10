@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="BenefitPay QR">
+  <rect width="256" height="256" fill="#fff"/>
+  <rect x="18" y="18" width="64" height="64" fill="#050505"/>
+  <rect x="30" y="30" width="40" height="40" fill="#fff"/>
+  <rect x="42" y="42" width="16" height="16" fill="#050505"/>
+  <rect x="174" y="18" width="64" height="64" fill="#050505"/>
+  <rect x="186" y="30" width="40" height="40" fill="#fff"/>
+  <rect x="198" y="42" width="16" height="16" fill="#050505"/>
+  <rect x="18" y="174" width="64" height="64" fill="#050505"/>
+  <rect x="30" y="186" width="40" height="40" fill="#fff"/>
+  <rect x="42" y="198" width="16" height="16" fill="#050505"/>
+  <g fill="#050505">
+    <rect x="102" y="24" width="12" height="12"/><rect x="126" y="24" width="12" height="12"/><rect x="150" y="24" width="12" height="12"/>
+    <rect x="102" y="48" width="36" height="12"/><rect x="150" y="48" width="12" height="36"/>
+    <rect x="96" y="96" width="12" height="48"/><rect x="120" y="96" width="36" height="12"/><rect x="180" y="96" width="36" height="12"/>
+    <rect x="120" y="120" width="12" height="12"/><rect x="144" y="120" width="48" height="12"/><rect x="216" y="120" width="12" height="36"/>
+    <rect x="96" y="156" width="60" height="12"/><rect x="180" y="156" width="12" height="12"/><rect x="204" y="156" width="24" height="12"/>
+    <rect x="102" y="186" width="12" height="42"/><rect x="126" y="186" width="36" height="12"/><rect x="174" y="186" width="60" height="12"/>
+    <rect x="126" y="210" width="12" height="24"/><rect x="150" y="222" width="36" height="12"/><rect x="210" y="210" width="24" height="24"/>
+  </g>
+  <rect x="95" y="76" width="66" height="14" rx="7" fill="#ff008c"/>
+  <text x="128" y="87" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" font-weight="700" fill="#fff">BenefitPay</text>
+</svg>

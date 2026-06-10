@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">7Phone logo</title>
+  <desc id="desc">7Phone Bahrain circular brand mark</desc>
+  <defs>
+    <linearGradient id="pink" x1="106" x2="420" y1="90" y2="430" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ff3dac"/>
+      <stop offset=".42" stop-color="#ff008c"/>
+      <stop offset="1" stop-color="#7dffda"/>
+    </linearGradient>
+    <filter id="shadow" x="36" y="36" width="440" height="440" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="22" stdDeviation="22" flood-color="#000" flood-opacity=".28"/>
+    </filter>
+  </defs>
+  <circle cx="256" cy="256" r="232" fill="#fff"/>
+  <circle cx="256" cy="256" r="208" fill="#101014" filter="url(#shadow)"/>
+  <circle cx="256" cy="256" r="178" fill="url(#pink)"/>
+  <path d="M161 166h190l-105 220" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="54"/>
+  <path d="M151 166h204" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="54"/>
+  <path d="M139 399c33 28 72 42 117 42 46 0 86-15 119-44" fill="none" stroke="#7dffda" stroke-linecap="round" stroke-width="18" opacity=".95"/>
+</svg>

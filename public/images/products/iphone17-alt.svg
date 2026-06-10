@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900" role="img" aria-label="iPhone 17 Pro Max back">
+  <rect width="900" height="900" fill="#050505"/>
+  <rect x="292" y="88" width="316" height="724" rx="62" fill="url(#body)" stroke="#e4e4e7" stroke-width="8"/>
+  <rect x="330" y="128" width="132" height="132" rx="34" fill="#16161b" stroke="#ff008c" stroke-width="6"/>
+  <circle cx="374" cy="172" r="25" fill="#050505" stroke="#fafafa" stroke-width="7"/>
+  <circle cx="422" cy="172" r="25" fill="#050505" stroke="#fafafa" stroke-width="7"/>
+  <circle cx="398" cy="220" r="25" fill="#050505" stroke="#fafafa" stroke-width="7"/>
+  <text x="450" y="494" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="800" fill="#111116">Pro Max</text>
+  <defs>
+    <linearGradient id="body" x1="292" x2="608" y1="88" y2="812">
+      <stop stop-color="#f8fafc"/>
+      <stop offset=".5" stop-color="#a1a1aa"/>
+      <stop offset="1" stop-color="#27272a"/>
+    </linearGradient>
+  </defs>
+</svg>

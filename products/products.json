@@ -1,0 +1,12 @@
+[
+  {
+    "id": 1,
+    "name": "iPhone 17 Pro Max",
+    "price": "519",
+    "category": "هواتف",
+    "brand": "Apple",
+    "storage": ["256GB", "512GB", "1TB"],
+    "colors": ["Black", "White", "Desert Titanium"],
+    "image": "images/iphone17.jpg"
+  }
+]
