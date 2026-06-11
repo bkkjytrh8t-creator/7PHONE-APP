@@ -62,15 +62,56 @@ export function AdminSettingsManager({
   locale: Locale;
   settings: StoreSettings;
 }) {
+  const copy = locale === 'ar'
+    ? {
+        title: 'إعدادات المتجر',
+        payment: 'إعدادات الدفع',
+        delivery: 'إعدادات التوصيل',
+        content: 'محتوى الموقع',
+        qr: 'BenefitPay QR',
+        iban: 'نص IBAN',
+        paymentOptions: 'خيارات الدفع',
+        deliveryOptions: 'خيارات التوصيل',
+        whatsappTemplate: 'قالب رسالة طلب واتساب',
+        save: 'حفظ مؤقت',
+        saved: 'تم الحفظ مؤقتاً في هذا المتصفح.',
+        temporary: 'هذه الإعدادات مؤقتة داخل لوحة الإدارة ولا تغيّر الموقع العام حتى يتم ربط قاعدة بيانات.'
+      }
+    : {
+        title: 'Store settings',
+        payment: 'Payment Settings',
+        delivery: 'Delivery Settings',
+        content: 'Website Content',
+        qr: 'BenefitPay QR',
+        iban: 'IBAN text',
+        paymentOptions: 'Payment options',
+        deliveryOptions: 'Delivery options',
+        whatsappTemplate: 'WhatsApp order message template',
+        save: 'Save temporary',
+        saved: 'Saved temporarily in this browser.',
+        temporary: 'These settings are temporary inside admin and do not change the public site until a database is connected.'
+      };
   const [logo, setLogo] = useState(settings.logoUrl ?? '');
   const [banner, setBanner] = useState(settings.bannerUrl ?? '');
   const [logoStatus, setLogoStatus] = useState('');
   const [bannerStatus, setBannerStatus] = useState('');
+  const [settingsStatus, setSettingsStatus] = useState('');
+  const [paymentOptions, setPaymentOptions] = useState('BenefitPay, Cash on delivery, Bank transfer');
+  const [deliveryOptions, setDeliveryOptions] = useState('Delivery Bahrain, Store pickup');
+  const [whatsappTemplate, setWhatsappTemplate] = useState('New order: {product} - {price} BHD - {storage} - {color}');
+  const [iban, setIban] = useState(settings.iban);
+  const [benefitPayQr, setBenefitPayQr] = useState(settings.benefitPayQr);
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     setLogo(window.localStorage.getItem(localLogoKey) || settings.logoUrl || '');
     setBanner(window.localStorage.getItem(localBannerKey) || settings.bannerUrl || '');
+    setPaymentOptions(window.localStorage.getItem('7phone-admin-payment-options') || paymentOptions);
+    setDeliveryOptions(window.localStorage.getItem('7phone-admin-delivery-options') || deliveryOptions);
+    setWhatsappTemplate(window.localStorage.getItem('7phone-admin-whatsapp-template') || whatsappTemplate);
+    setIban(window.localStorage.getItem('7phone-admin-iban') || settings.iban);
+    setBenefitPayQr(window.localStorage.getItem('7phone-admin-benefitpay-qr') || settings.benefitPayQr);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings.bannerUrl, settings.logoUrl]);
 
   async function onLogoChange(file: File | null) {
@@ -175,17 +216,25 @@ export function AdminSettingsManager({
     [locale === 'ar' ? 'رابط الموقع' : 'Site URL', settings.siteUrl]
   ];
 
+  function saveTemporarySettings() {
+    window.localStorage.setItem('7phone-admin-payment-options', paymentOptions);
+    window.localStorage.setItem('7phone-admin-delivery-options', deliveryOptions);
+    window.localStorage.setItem('7phone-admin-whatsapp-template', whatsappTemplate);
+    window.localStorage.setItem('7phone-admin-iban', iban);
+    window.localStorage.setItem('7phone-admin-benefitpay-qr', benefitPayQr);
+    setSettingsStatus(copy.saved);
+  }
+
   return (
-    <div className="mx-auto grid max-w-4xl gap-6">
-      <section className="rounded-[20px] bg-white p-6 shadow-neon">
-        <h1 className="text-3xl font-black text-brand-ink">
-          {locale === 'ar' ? 'إعدادات المتجر' : 'Store settings'}
-        </h1>
+    <div className="grid gap-5">
+      <section className="rounded-lg border border-white/10 bg-zinc-950 p-5">
+        <h2 className="text-2xl font-black text-white">{copy.title}</h2>
+        <p className="mt-2 text-sm font-semibold text-zinc-400">{copy.temporary}</p>
 
         <div className="mt-6 grid gap-5 md:grid-cols-[220px_1fr]">
-          <div className="grid h-44 place-items-center rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+          <div className="grid h-44 place-items-center rounded-lg border border-white/10 bg-white/[0.03] p-4">
             {logo ? (
-              <div className="grid h-32 w-32 place-items-center overflow-hidden rounded-full bg-white shadow-sm ring-1 ring-zinc-200">
+              <div className="grid h-32 w-32 place-items-center overflow-hidden rounded-full bg-white shadow-sm ring-1 ring-white/10">
                 <img alt="Store logo preview" className="h-full w-full rounded-full object-cover" src={logo} />
               </div>
             ) : (
@@ -196,7 +245,7 @@ export function AdminSettingsManager({
           </div>
 
           <div className="grid content-start gap-3">
-            <label className="grid gap-2 rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-4 text-sm font-bold text-zinc-600">
+            <label className="grid gap-2 rounded-lg border border-dashed border-white/15 bg-white/[0.03] p-4 text-sm font-bold text-zinc-300">
               {locale === 'ar' ? 'رفع لوغو المتجر' : 'Upload store logo'}
               <input
                 accept="image/*"
@@ -207,7 +256,7 @@ export function AdminSettingsManager({
             </label>
             <div className="flex flex-wrap gap-2">
               <button
-                className="h-11 rounded-xl bg-brand-neon px-5 text-sm font-black text-white"
+                className="h-11 rounded-md bg-brand-neon px-5 text-sm font-black text-white"
                 disabled={isProcessing || !logo}
                 type="button"
                 onClick={persistLogo}
@@ -221,7 +270,7 @@ export function AdminSettingsManager({
                     : 'Save logo'}
               </button>
               <button
-                className="h-11 rounded-xl border border-zinc-200 px-5 text-sm font-black text-zinc-700"
+                className="h-11 rounded-md border border-white/10 px-5 text-sm font-black text-zinc-200"
                 type="button"
                 onClick={removeLogo}
               >
@@ -234,7 +283,7 @@ export function AdminSettingsManager({
                 : 'In preview mode the logo is saved in this browser. Connect Supabase to save it for all devices.'}
             </p>
             {logoStatus ? (
-              <p className="rounded-xl bg-zinc-100 px-4 py-3 text-sm font-bold text-brand-ink" role="status">
+              <p className="rounded-md bg-white/5 px-4 py-3 text-sm font-bold text-zinc-200" role="status">
                 {logoStatus}
               </p>
             ) : null}
@@ -242,8 +291,8 @@ export function AdminSettingsManager({
         </div>
       </section>
 
-      <section className="rounded-[20px] bg-white p-6 shadow-neon">
-        <h2 className="text-xl font-black text-brand-ink">
+      <section className="rounded-lg border border-white/10 bg-zinc-950 p-5">
+        <h2 className="text-xl font-black text-white">
           {locale === 'ar' ? 'بنر أعلى الموقع' : 'Top site banner'}
         </h2>
         <div className="mt-5 grid gap-4">
@@ -256,7 +305,7 @@ export function AdminSettingsManager({
               </div>
             )}
           </div>
-          <label className="grid gap-2 rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-4 text-sm font-bold text-zinc-600">
+          <label className="grid gap-2 rounded-lg border border-dashed border-white/15 bg-white/[0.03] p-4 text-sm font-bold text-zinc-300">
             {locale === 'ar' ? 'رفع البنر' : 'Upload banner'}
             <input
               accept="image/*"
@@ -267,7 +316,7 @@ export function AdminSettingsManager({
           </label>
           <div className="flex flex-wrap gap-2">
             <button
-              className="h-11 rounded-xl bg-brand-neon px-5 text-sm font-black text-white"
+              className="h-11 rounded-md bg-brand-neon px-5 text-sm font-black text-white"
               disabled={isProcessing || !banner}
               type="button"
               onClick={persistBanner}
@@ -281,7 +330,7 @@ export function AdminSettingsManager({
                   : 'Save banner'}
             </button>
             <button
-              className="h-11 rounded-xl border border-zinc-200 px-5 text-sm font-black text-zinc-700"
+              className="h-11 rounded-md border border-white/10 px-5 text-sm font-black text-zinc-200"
               type="button"
               onClick={removeBanner}
             >
@@ -294,22 +343,60 @@ export function AdminSettingsManager({
               : 'A wide banner around a 4:1 ratio will look best at the top of the site.'}
           </p>
           {bannerStatus ? (
-            <p className="rounded-xl bg-zinc-100 px-4 py-3 text-sm font-bold text-brand-ink" role="status">
+            <p className="rounded-md bg-white/5 px-4 py-3 text-sm font-bold text-zinc-200" role="status">
               {bannerStatus}
             </p>
           ) : null}
         </div>
       </section>
 
-      <section className="rounded-[20px] bg-white p-6 shadow-neon">
-        <h2 className="text-xl font-black text-brand-ink">
+      <section className="grid gap-4 rounded-lg border border-white/10 bg-zinc-950 p-5">
+        <h2 className="text-xl font-black text-white">{copy.payment}</h2>
+        <div className="grid gap-3 md:grid-cols-2">
+          <label className="grid gap-2 text-xs font-black uppercase text-zinc-400">
+            {copy.qr}
+            <input className="admin-input" onChange={(event) => setBenefitPayQr(event.target.value)} value={benefitPayQr} />
+          </label>
+          <label className="grid gap-2 text-xs font-black uppercase text-zinc-400">
+            {copy.iban}
+            <input className="admin-input" onChange={(event) => setIban(event.target.value)} value={iban} />
+          </label>
+        </div>
+        <label className="grid gap-2 text-xs font-black uppercase text-zinc-400">
+          {copy.paymentOptions}
+          <textarea className="admin-textarea" onChange={(event) => setPaymentOptions(event.target.value)} value={paymentOptions} />
+        </label>
+      </section>
+
+      <section className="grid gap-4 rounded-lg border border-white/10 bg-zinc-950 p-5">
+        <h2 className="text-xl font-black text-white">{copy.delivery}</h2>
+        <label className="grid gap-2 text-xs font-black uppercase text-zinc-400">
+          {copy.deliveryOptions}
+          <textarea className="admin-textarea" onChange={(event) => setDeliveryOptions(event.target.value)} value={deliveryOptions} />
+        </label>
+      </section>
+
+      <section className="grid gap-4 rounded-lg border border-white/10 bg-zinc-950 p-5">
+        <h2 className="text-xl font-black text-white">{copy.content}</h2>
+        <label className="grid gap-2 text-xs font-black uppercase text-zinc-400">
+          {copy.whatsappTemplate}
+          <textarea className="admin-textarea" onChange={(event) => setWhatsappTemplate(event.target.value)} value={whatsappTemplate} />
+        </label>
+        <button className="h-11 w-fit rounded-md bg-brand-neon px-5 text-sm font-black text-white" onClick={saveTemporarySettings} type="button">
+          {copy.save}
+        </button>
+        {settingsStatus ? <p className="rounded-md bg-brand-neon/10 px-4 py-3 text-sm font-bold text-pink-100">{settingsStatus}</p> : null}
+      </section>
+
+      <section className="rounded-lg border border-white/10 bg-zinc-950 p-5">
+        <h2 className="text-xl font-black text-white">
           {locale === 'ar' ? 'بيانات التواصل' : 'Contact details'}
         </h2>
         <dl className="mt-5 grid gap-3">
           {rows.map(([key, value]) => (
-            <div className="rounded-xl border border-zinc-200 p-4" key={key}>
+            <div className="rounded-lg border border-white/10 bg-white/[0.03] p-4" key={key}>
               <dt className="text-xs font-black uppercase text-zinc-400">{key}</dt>
-              <dd className="mt-1 break-words font-bold">{value}</dd>
+              <dd className="mt-1 break-words font-bold text-zinc-200">{value}</dd>
             </div>
           ))}
         </dl>

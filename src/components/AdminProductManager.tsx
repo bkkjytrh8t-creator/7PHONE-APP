@@ -1,9 +1,142 @@
 'use client';
 
 import {useEffect, useMemo, useState} from 'react';
-import type {Brand, Category, Locale, Product} from '@/lib/types';
+import type {Badge, Brand, Category, Locale, Product} from '@/lib/types';
 
-const localProductsKey = '7phone-local-products';
+const localProductsKey = '7phone-admin-products';
+
+type ProductForm = {
+  id?: number;
+  name_ar: string;
+  name_en: string;
+  brandId: string;
+  categoryId: string;
+  price_bhd: string;
+  old_price_bhd: string;
+  storage: string;
+  colors: string;
+  stock_status: string;
+  warranty: string;
+  description_ar: string;
+  description_en: string;
+  specifications_ar: string;
+  specifications_en: string;
+  images: string;
+  featured: boolean;
+  newArrival: boolean;
+  offer: boolean;
+  displayOrder: string;
+  accessories: string;
+};
+
+const emptyForm: ProductForm = {
+  name_ar: '',
+  name_en: '',
+  brandId: '',
+  categoryId: '',
+  price_bhd: '',
+  old_price_bhd: '',
+  storage: '',
+  colors: '',
+  stock_status: 'available',
+  warranty: '',
+  description_ar: '',
+  description_en: '',
+  specifications_ar: '',
+  specifications_en: '',
+  images: '',
+  featured: false,
+  newArrival: false,
+  offer: false,
+  displayOrder: '0',
+  accessories: ''
+};
+
+const ui = {
+  en: {
+    add: 'Add product',
+    edit: 'Edit product',
+    save: 'Save product',
+    update: 'Update product',
+    cancel: 'Cancel',
+    delete: 'Delete',
+    editButton: 'Edit',
+    active: 'Available',
+    hidden: 'Hidden / out',
+    temp: 'Temporary data layer: changes are saved in this admin browser only and do not overwrite the live product seed yet.',
+    image: 'Upload or change product image',
+    list: 'Product list',
+    saved: 'Saved in temporary admin storage.',
+    fields: {
+      name_ar: 'Product name Arabic',
+      name_en: 'Product name English',
+      brand: 'Brand',
+      category: 'Category',
+      price: 'Price',
+      oldPrice: 'Old price optional',
+      storage: 'Storage variants',
+      colors: 'Color variants',
+      warranty: 'Warranty type',
+      description_ar: 'Arabic description',
+      description_en: 'English description',
+      specs_ar: 'Short / full specs Arabic',
+      specs_en: 'Short / full specs English',
+      images: 'Product image URLs',
+      order: 'Display order',
+      accessories: 'Accessory suggestions'
+    },
+    toggles: {
+      featured: 'Featured product',
+      newArrival: 'New arrival',
+      offer: 'Offer'
+    }
+  },
+  ar: {
+    add: 'إضافة منتج',
+    edit: 'تعديل المنتج',
+    save: 'حفظ المنتج',
+    update: 'تحديث المنتج',
+    cancel: 'إلغاء',
+    delete: 'حذف',
+    editButton: 'تعديل',
+    active: 'متوفر',
+    hidden: 'مخفي / غير متوفر',
+    temp: 'طبقة بيانات مؤقتة: التعديلات تحفظ في متصفح الإدارة فقط ولا تستبدل بيانات الموقع الحي بعد.',
+    image: 'رفع أو تغيير صورة المنتج',
+    list: 'قائمة المنتجات',
+    saved: 'تم الحفظ في التخزين المؤقت للإدارة.',
+    fields: {
+      name_ar: 'اسم المنتج عربي',
+      name_en: 'اسم المنتج إنجليزي',
+      brand: 'العلامة',
+      category: 'التصنيف',
+      price: 'السعر',
+      oldPrice: 'السعر القديم اختياري',
+      storage: 'خيارات التخزين',
+      colors: 'خيارات الألوان',
+      warranty: 'نوع الضمان',
+      description_ar: 'الوصف العربي',
+      description_en: 'الوصف الإنجليزي',
+      specs_ar: 'المواصفات المختصرة/الكاملة عربي',
+      specs_en: 'المواصفات المختصرة/الكاملة إنجليزي',
+      images: 'روابط صور المنتج',
+      order: 'ترتيب العرض',
+      accessories: 'اقتراحات الاكسسوارات'
+    },
+    toggles: {
+      featured: 'منتج مميز',
+      newArrival: 'وصل حديثاً',
+      offer: 'عرض'
+    }
+  }
+};
+
+function splitList(value: string) {
+  return value
+    .split(/[\n,]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
 
 function readLocalProducts() {
   try {
@@ -16,7 +149,88 @@ function readLocalProducts() {
 
 function saveLocalProducts(products: Product[]) {
   window.localStorage.setItem(localProductsKey, JSON.stringify(products));
-  window.dispatchEvent(new Event('7phone-products-updated'));
+}
+
+function badgeFromForm(form: ProductForm): Badge {
+  if (form.offer) return 'deal';
+  if (form.newArrival) return 'new';
+  if (form.featured) return 'best-seller';
+  return 'none';
+}
+
+function formFromProduct(product: Product): ProductForm {
+  return {
+    id: product.id,
+    name_ar: product.name_ar,
+    name_en: product.name_en,
+    brandId: String(product.brand.id),
+    categoryId: String(product.category.id),
+    price_bhd: String(product.price_bhd),
+    old_price_bhd: product.old_price_bhd ? String(product.old_price_bhd) : '',
+    storage: product.storage.join(', '),
+    colors: product.colors.join(', '),
+    stock_status: product.stock_status,
+    warranty: product.warranty,
+    description_ar: product.description_ar,
+    description_en: product.description_en,
+    specifications_ar: product.specifications_ar.join('\n'),
+    specifications_en: product.specifications_en.join('\n'),
+    images: product.images.join('\n'),
+    featured: product.badge === 'best-seller',
+    newArrival: product.badge === 'new',
+    offer: product.badge === 'deal',
+    displayOrder: String(product.views ?? 0),
+    accessories: product.accessories.map((item) => `${item.name_en} / ${item.name_ar} / ${item.price_bhd}`).join('\n')
+  };
+}
+
+function productFromForm(form: ProductForm, brands: Brand[], categories: Category[], fallback?: Product): Product {
+  const brand = brands.find((item) => item.id === Number(form.brandId)) ?? brands[0];
+  const category = categories.find((item) => item.id === Number(form.categoryId)) ?? categories[0];
+  const storage = splitList(form.storage);
+  const price = Number(form.price_bhd || 0);
+
+  return {
+    id: form.id ?? Date.now(),
+    name_en: form.name_en.trim(),
+    name_ar: form.name_ar.trim(),
+    description_en: form.description_en.trim(),
+    description_ar: form.description_ar.trim(),
+    price_bhd: price,
+    old_price_bhd: form.old_price_bhd ? Number(form.old_price_bhd) : null,
+    storage_prices: storage.map((label) => ({label, price_bhd: price})),
+    accessories: splitList(form.accessories).map((item, index) => {
+      const [name_en = item, name_ar = item, price_bhd = '0'] = item.split('/').map((part) => part.trim());
+      return {id: index + 1, name_en, name_ar, price_bhd: Number(price_bhd), category: 'suggested'};
+    }),
+    comparison: fallback?.comparison ?? {
+      display: '',
+      camera: '',
+      battery: '',
+      processor: ''
+    },
+    brand,
+    category,
+    condition: fallback?.condition ?? 'New',
+    warranty: form.warranty.trim(),
+    installments: fallback?.installments ?? 'Available',
+    badge: badgeFromForm(form),
+    stock_status: form.stock_status,
+    views: Number(form.displayOrder || fallback?.views || 0),
+    shares: fallback?.shares ?? 0,
+    orders: fallback?.orders ?? 0,
+    is_active: form.stock_status === 'available',
+    images: splitList(form.images),
+    storage,
+    colors: splitList(form.colors),
+    specifications_en: splitList(form.specifications_en),
+    specifications_ar: splitList(form.specifications_ar),
+    likes: fallback?.likes ?? 0,
+    sold_count: fallback?.sold_count ?? 0,
+    rating: fallback?.rating ?? 0,
+    review_count: fallback?.review_count ?? 0,
+    created_at: fallback?.created_at ?? new Date().toISOString()
+  };
 }
 
 export function AdminProductManager({
@@ -30,180 +244,233 @@ export function AdminProductManager({
   categories: Category[];
   brands: Brand[];
 }) {
+  const copy = ui[locale];
   const [localProducts, setLocalProducts] = useState<Product[]>([]);
-  const [name, setName] = useState('');
-  const [price, setPrice] = useState('');
-  const [brandId, setBrandId] = useState(String(brands[0]?.id ?? ''));
-  const [categoryId, setCategoryId] = useState(String(categories[0]?.id ?? ''));
-  const [storage, setStorage] = useState('');
-  const [colors, setColors] = useState('');
-  const [image, setImage] = useState('');
+  const [form, setForm] = useState<ProductForm>({
+    ...emptyForm,
+    brandId: String(brands[0]?.id ?? ''),
+    categoryId: String(categories[0]?.id ?? '')
+  });
+  const [status, setStatus] = useState('');
 
   useEffect(() => {
     setLocalProducts(readLocalProducts());
   }, []);
 
-  const allProducts = useMemo(() => [...localProducts, ...seedProducts], [localProducts, seedProducts]);
+  const allProducts = useMemo(() => {
+    const localIds = new Set(localProducts.map((product) => product.id));
+    return [...localProducts, ...seedProducts.filter((product) => !localIds.has(product.id))];
+  }, [localProducts, seedProducts]);
 
-  function onImageChange(file: File | null) {
-    if (!file) {
-      setImage('');
-      return;
-    }
+  function updateField(field: keyof ProductForm, value: string | boolean) {
+    setForm((current) => ({...current, [field]: value}));
+  }
 
-    const reader = new FileReader();
-    reader.onload = () => setImage(String(reader.result));
-    reader.readAsDataURL(file);
+  function resetForm() {
+    setForm({
+      ...emptyForm,
+      brandId: String(brands[0]?.id ?? ''),
+      categoryId: String(categories[0]?.id ?? '')
+    });
+  }
+
+  function persist(nextProducts: Product[]) {
+    setLocalProducts(nextProducts);
+    saveLocalProducts(nextProducts);
+    setStatus(copy.saved);
   }
 
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const fallback = allProducts.find((product) => product.id === form.id);
+    const nextProduct = productFromForm(form, brands, categories, fallback);
+    const isExistingLocalProduct = localProducts.some((product) => product.id === form.id);
+    const nextProducts = form.id && isExistingLocalProduct
+      ? localProducts.map((product) => (product.id === form.id ? nextProduct : product))
+      : [nextProduct, ...localProducts];
 
-    const brand = brands.find((item) => item.id === Number(brandId)) ?? brands[0];
-    const category = categories.find((item) => item.id === Number(categoryId)) ?? categories[0];
-    const nextProduct: Product = {
-      id: Date.now(),
-      name_en: name,
-      name_ar: name,
-      description_en: name,
-      description_ar: name,
-      price_bhd: Number(price),
-      old_price_bhd: null,
-      storage_prices: storage.split(',').map((item) => item.trim()).filter(Boolean).map((item) => ({label: item, price_bhd: Number(price)})),
-      accessories: [],
-      comparison: {
-        display: locale === 'ar' ? 'غير محدد' : 'Not set',
-        camera: locale === 'ar' ? 'غير محدد' : 'Not set',
-        battery: locale === 'ar' ? 'غير محدد' : 'Not set',
-        processor: locale === 'ar' ? 'غير محدد' : 'Not set'
-      },
-      brand,
-      category,
-      condition: 'New',
-      warranty: '1 year',
-      installments: 'Available',
-      badge: 'new',
-      stock_status: 'available',
-      views: 0,
-      shares: 0,
-      orders: 0,
-      is_active: true,
-      images: image ? [image] : [],
-      storage: storage.split(',').map((item) => item.trim()).filter(Boolean),
-      colors: colors.split(',').map((item) => item.trim()).filter(Boolean),
-      specifications_en: [],
-      specifications_ar: [],
-      likes: 0,
-      sold_count: 0,
-      rating: 0,
-      review_count: 0,
-      created_at: new Date().toISOString()
+    persist(nextProducts);
+    resetForm();
+  }
+
+  function editProduct(product: Product) {
+    setForm(formFromProduct(product));
+    setStatus('');
+  }
+
+  function deleteProduct(product: Product) {
+    const hiddenProduct = {...product, is_active: false, stock_status: 'deleted'};
+    const existsLocally = localProducts.some((item) => item.id === product.id);
+    const nextProducts = existsLocally
+      ? localProducts.map((item) => (item.id === product.id ? hiddenProduct : item))
+      : [hiddenProduct, ...localProducts];
+
+    persist(nextProducts);
+  }
+
+  function onImageChange(file: File | null) {
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const nextImage = String(reader.result);
+      setForm((current) => ({
+        ...current,
+        images: current.images ? `${current.images}\n${nextImage}` : nextImage
+      }));
     };
-
-    const nextProducts = [nextProduct, ...localProducts];
-    setLocalProducts(nextProducts);
-    saveLocalProducts(nextProducts);
-    setName('');
-    setPrice('');
-    setStorage('');
-    setColors('');
-    setImage('');
+    reader.readAsDataURL(file);
   }
 
   return (
-    <div className="mt-6 grid gap-6 lg:grid-cols-[420px_1fr]">
-      <form className="grid gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4" onSubmit={submit}>
-        <h2 className="text-xl font-black text-brand-ink">
-          {locale === 'ar' ? 'إضافة بضاعة' : 'Add product'}
-        </h2>
-        <input
-          className="h-11 rounded-xl border border-zinc-200 px-4 text-sm font-bold outline-none focus:border-brand-neon"
-          onChange={(event) => setName(event.target.value)}
-          placeholder={locale === 'ar' ? 'اسم المنتج' : 'Product name'}
-          required
-          type="text"
-          value={name}
-        />
-        <input
-          className="h-11 rounded-xl border border-zinc-200 px-4 text-sm font-bold outline-none focus:border-brand-neon"
-          min="0"
-          onChange={(event) => setPrice(event.target.value)}
-          placeholder={locale === 'ar' ? 'السعر بالدينار' : 'Price in BHD'}
-          required
-          step="0.001"
-          type="number"
-          value={price}
-        />
-        <div className="grid grid-cols-2 gap-3">
-          <select
-            className="h-11 rounded-xl border border-zinc-200 px-3 text-sm font-bold outline-none focus:border-brand-neon"
-            onChange={(event) => setBrandId(event.target.value)}
-            value={brandId}
-          >
-            {brands.map((brand) => (
-              <option key={brand.id} value={brand.id}>
-                {brand.name_en}
-              </option>
-            ))}
-          </select>
-          <select
-            className="h-11 rounded-xl border border-zinc-200 px-3 text-sm font-bold outline-none focus:border-brand-neon"
-            onChange={(event) => setCategoryId(event.target.value)}
-            value={categoryId}
-          >
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {locale === 'ar' ? category.name_ar : category.name_en}
-              </option>
-            ))}
-          </select>
+    <div className="mt-6 grid gap-5 xl:grid-cols-[minmax(360px,520px)_1fr]">
+      <form className="grid gap-3 rounded-lg border border-white/10 bg-black/30 p-4" onSubmit={submit}>
+        <div>
+          <h3 className="text-xl font-black text-white">{form.id ? copy.edit : copy.add}</h3>
+          <p className="mt-1 text-xs font-bold leading-5 text-zinc-500">{copy.temp}</p>
         </div>
-        <input
-          className="h-11 rounded-xl border border-zinc-200 px-4 text-sm font-bold outline-none focus:border-brand-neon"
-          onChange={(event) => setStorage(event.target.value)}
-          placeholder={locale === 'ar' ? 'التخزين: 128GB, 256GB' : 'Storage: 128GB, 256GB'}
-          type="text"
-          value={storage}
-        />
-        <input
-          className="h-11 rounded-xl border border-zinc-200 px-4 text-sm font-bold outline-none focus:border-brand-neon"
-          onChange={(event) => setColors(event.target.value)}
-          placeholder={locale === 'ar' ? 'الألوان: أسود, أبيض' : 'Colors: Black, White'}
-          type="text"
-          value={colors}
-        />
-        <label className="grid gap-2 rounded-xl border border-dashed border-zinc-300 bg-white p-4 text-sm font-bold text-zinc-600">
-          {locale === 'ar' ? 'رفع صورة المنتج' : 'Upload product image'}
-          <input accept="image/*" onChange={(event) => onImageChange(event.target.files?.[0] ?? null)} type="file" />
-        </label>
-        {image ? (
-          <img alt="" className="h-32 w-full rounded-xl object-cover" src={image} />
-        ) : null}
-        <button className="h-11 rounded-xl bg-brand-neon px-5 text-sm font-black text-white" type="submit">
-          {locale === 'ar' ? 'حفظ المنتج' : 'Save product'}
-        </button>
-        <p className="text-xs font-semibold leading-5 text-zinc-500">
-          {locale === 'ar'
-            ? 'هذه نسخة سهلة تجريبية تحفظ على نفس المتصفح فقط. للموظفين والأجهزة المتعددة نربط Supabase.'
-            : 'This preview saves in this browser only. For staff and multiple devices, connect Supabase.'}
-        </p>
+
+        <div className="grid gap-3 md:grid-cols-2">
+          <Field label={copy.fields.name_ar}>
+            <input className="admin-input" onChange={(event) => updateField('name_ar', event.target.value)} required value={form.name_ar} />
+          </Field>
+          <Field label={copy.fields.name_en}>
+            <input className="admin-input" onChange={(event) => updateField('name_en', event.target.value)} required value={form.name_en} />
+          </Field>
+          <Field label={copy.fields.brand}>
+            <select className="admin-input" onChange={(event) => updateField('brandId', event.target.value)} value={form.brandId}>
+              {brands.map((brand) => <option key={brand.id} value={brand.id}>{brand.name_en}</option>)}
+            </select>
+          </Field>
+          <Field label={copy.fields.category}>
+            <select className="admin-input" onChange={(event) => updateField('categoryId', event.target.value)} value={form.categoryId}>
+              {categories.map((category) => <option key={category.id} value={category.id}>{locale === 'ar' ? category.name_ar : category.name_en}</option>)}
+            </select>
+          </Field>
+          <Field label={copy.fields.price}>
+            <input className="admin-input" min="0" onChange={(event) => updateField('price_bhd', event.target.value)} required step="0.001" type="number" value={form.price_bhd} />
+          </Field>
+          <Field label={copy.fields.oldPrice}>
+            <input className="admin-input" min="0" onChange={(event) => updateField('old_price_bhd', event.target.value)} step="0.001" type="number" value={form.old_price_bhd} />
+          </Field>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-2">
+          <Field label={copy.fields.storage}>
+            <input className="admin-input" onChange={(event) => updateField('storage', event.target.value)} placeholder="256GB, 512GB" value={form.storage} />
+          </Field>
+          <Field label={copy.fields.colors}>
+            <input className="admin-input" onChange={(event) => updateField('colors', event.target.value)} placeholder="Black, White" value={form.colors} />
+          </Field>
+        </div>
+
+        <Field label={copy.fields.warranty}>
+          <input className="admin-input" onChange={(event) => updateField('warranty', event.target.value)} required value={form.warranty} />
+        </Field>
+        <Field label={copy.fields.description_ar}>
+          <textarea className="admin-textarea" onChange={(event) => updateField('description_ar', event.target.value)} required value={form.description_ar} />
+        </Field>
+        <Field label={copy.fields.description_en}>
+          <textarea className="admin-textarea" onChange={(event) => updateField('description_en', event.target.value)} required value={form.description_en} />
+        </Field>
+        <Field label={copy.fields.specs_ar}>
+          <textarea className="admin-textarea" onChange={(event) => updateField('specifications_ar', event.target.value)} value={form.specifications_ar} />
+        </Field>
+        <Field label={copy.fields.specs_en}>
+          <textarea className="admin-textarea" onChange={(event) => updateField('specifications_en', event.target.value)} value={form.specifications_en} />
+        </Field>
+        <Field label={copy.fields.accessories}>
+          <textarea className="admin-textarea" onChange={(event) => updateField('accessories', event.target.value)} placeholder="Case / كفر / 5" value={form.accessories} />
+        </Field>
+
+        <div className="grid gap-3 md:grid-cols-[1fr_150px]">
+          <Field label={copy.fields.images}>
+            <textarea className="admin-textarea" onChange={(event) => updateField('images', event.target.value)} value={form.images} />
+          </Field>
+          <label className="grid content-center gap-2 rounded-lg border border-dashed border-white/15 bg-white/[0.03] p-3 text-xs font-black text-zinc-300">
+            {copy.image}
+            <input accept="image/*" className="text-xs" onChange={(event) => onImageChange(event.target.files?.[0] ?? null)} type="file" />
+          </label>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-2">
+          <Field label={locale === 'ar' ? 'حالة التوفر' : 'Availability status'}>
+            <select className="admin-input" onChange={(event) => updateField('stock_status', event.target.value)} value={form.stock_status}>
+              <option value="available">{copy.active}</option>
+              <option value="out">{copy.hidden}</option>
+            </select>
+          </Field>
+          <Field label={copy.fields.order}>
+            <input className="admin-input" onChange={(event) => updateField('displayOrder', event.target.value)} type="number" value={form.displayOrder} />
+          </Field>
+        </div>
+
+        <div className="grid gap-2 sm:grid-cols-3">
+          {[
+            ['featured', copy.toggles.featured],
+            ['newArrival', copy.toggles.newArrival],
+            ['offer', copy.toggles.offer]
+          ].map(([field, label]) => (
+            <label className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.03] px-3 py-2 text-sm font-black text-zinc-200" key={field}>
+              <input checked={Boolean(form[field as keyof ProductForm])} onChange={(event) => updateField(field as keyof ProductForm, event.target.checked)} type="checkbox" />
+              {label}
+            </label>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <button className="h-11 rounded-md bg-brand-neon px-5 text-sm font-black text-white" type="submit">
+            {form.id ? copy.update : copy.save}
+          </button>
+          {form.id ? (
+            <button className="h-11 rounded-md border border-white/10 px-5 text-sm font-black text-zinc-200" onClick={resetForm} type="button">
+              {copy.cancel}
+            </button>
+          ) : null}
+        </div>
+        {status ? <p className="rounded-md bg-brand-neon/10 px-3 py-2 text-sm font-bold text-pink-100">{status}</p> : null}
       </form>
 
-      <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white">
-        {allProducts.map((product) => (
-          <div className="grid gap-3 border-b border-zinc-200 p-4 md:grid-cols-[64px_1fr_120px_90px]" key={product.id}>
-            <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-xl bg-zinc-100 text-xs font-black text-zinc-400">
-              {product.images[0] ? <img alt="" className="h-full w-full object-cover" src={product.images[0]} /> : '7'}
+      <div className="rounded-lg border border-white/10 bg-black/30">
+        <div className="border-b border-white/10 p-4">
+          <h3 className="text-xl font-black text-white">{copy.list}</h3>
+        </div>
+        <div className="grid max-h-[980px] gap-0 overflow-auto">
+          {allProducts.map((product) => (
+            <div className="grid gap-3 border-b border-white/10 p-4 md:grid-cols-[68px_1fr_auto]" key={product.id}>
+              <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-md bg-white/5 text-xs font-black text-zinc-500">
+                {product.images[0] ? <img alt="" className="h-full w-full object-cover" src={product.images[0]} /> : '7'}
+              </div>
+              <div className="min-w-0">
+                <strong className="block truncate text-sm text-white">{locale === 'ar' ? product.name_ar : product.name_en}</strong>
+                <span className="text-xs font-bold text-zinc-500">{product.brand.name_en} · {product.category.name_en}</span>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  <span className="rounded bg-brand-neon/15 px-2 py-1 text-xs font-black text-brand-neon">BHD {product.price_bhd}</span>
+                  <span className="rounded bg-white/5 px-2 py-1 text-xs font-black text-zinc-300">{product.stock_status}</span>
+                  <span className="rounded bg-white/5 px-2 py-1 text-xs font-black text-zinc-300">{product.badge}</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-2 md:justify-end">
+                <button className="rounded-md border border-white/10 px-3 py-2 text-xs font-black text-zinc-200" onClick={() => editProduct(product)} type="button">
+                  {copy.editButton}
+                </button>
+                <button className="rounded-md bg-red-500/15 px-3 py-2 text-xs font-black text-red-200" onClick={() => deleteProduct(product)} type="button">
+                  {copy.delete}
+                </button>
+              </div>
             </div>
-            <div>
-              <strong className="block text-sm text-brand-ink">{locale === 'ar' ? product.name_ar : product.name_en}</strong>
-              <span className="text-xs font-bold text-zinc-500">{product.brand.name_en}</span>
-            </div>
-            <span className="text-sm font-black text-brand-pink">BHD {product.price_bhd}</span>
-            <span className="text-xs font-bold text-zinc-500">{product.is_active ? 'Active' : 'Hidden'}</span>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
+  );
+}
+
+function Field({label, children}: {label: string; children: React.ReactNode}) {
+  return (
+    <label className="grid gap-1.5 text-xs font-black uppercase text-zinc-400">
+      {label}
+      {children}
+    </label>
   );
 }

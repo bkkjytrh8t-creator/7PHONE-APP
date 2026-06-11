@@ -1,4 +1,4 @@
-import {AdminAuthGate} from '@/components/AdminAuthGate';
+import {AdminShell} from '@/components/AdminShell';
 import {AdminProductManager} from '@/components/AdminProductManager';
 import {getProducts} from '@/lib/data';
 import {brands, categories} from '@/lib/seed';
@@ -10,14 +10,13 @@ export default async function AdminProductsPage({params}: {params: Promise<{loca
   const products = await getProducts();
 
   return (
-    <AdminAuthGate locale={locale}>
-      <main className="min-h-screen bg-zinc-100 px-4 py-10">
-      <div className="mx-auto max-w-6xl rounded-[20px] bg-white p-6 shadow-neon">
-        <h1 className="text-3xl font-black">Products</h1>
-        <p className="mt-2 text-zinc-600">
+    <AdminShell locale={locale}>
+      <section className="rounded-lg border border-white/10 bg-zinc-950 p-5">
+        <h2 className="text-2xl font-black text-white">{locale === 'ar' ? 'المنتجات' : 'Products'}</h2>
+        <p className="mt-2 text-sm font-semibold text-zinc-400">
           {locale === 'ar'
-            ? 'أدخل المنتج والسعر والصورة. هذه نسخة سهلة للتجربة تحفظ على نفس المتصفح.'
-            : 'Enter product, price, and image. This easy preview saves in this browser.'}
+            ? 'إضافة وتعديل وحذف المنتجات مؤقتاً داخل لوحة الإدارة.'
+            : 'Add, edit, and delete products temporarily inside the admin panel.'}
         </p>
         <AdminProductManager
           locale={locale}
@@ -25,8 +24,7 @@ export default async function AdminProductsPage({params}: {params: Promise<{loca
           categories={categories}
           brands={brands}
         />
-      </div>
-      </main>
-    </AdminAuthGate>
+      </section>
+    </AdminShell>
   );
 }

@@ -1,4 +1,4 @@
-import {AdminAuthGate} from '@/components/AdminAuthGate';
+import {AdminShell} from '@/components/AdminShell';
 import {getCategories} from '@/lib/data';
 import type {Locale} from '@/lib/types';
 
@@ -8,19 +8,17 @@ export default async function AdminCategoriesPage({params}: {params: Promise<{lo
   const categories = await getCategories();
 
   return (
-    <AdminAuthGate locale={locale}>
-      <main className="min-h-screen bg-zinc-100 px-4 py-10">
-      <div className="mx-auto max-w-4xl rounded-[20px] bg-white p-6 shadow-neon">
-        <h1 className="text-3xl font-black">Categories</h1>
+    <AdminShell locale={locale}>
+      <section className="rounded-lg border border-white/10 bg-zinc-950 p-5">
+        <h2 className="text-2xl font-black text-white">{locale === 'ar' ? 'التصنيفات' : 'Categories'}</h2>
         <div className="mt-6 grid gap-3">
           {categories.map((category) => (
-            <div className="rounded-2xl border border-zinc-200 p-4 font-bold" key={category.id}>
+            <div className="rounded-lg border border-white/10 bg-white/[0.03] p-4 font-bold text-zinc-200" key={category.id}>
               {category.icon} {category.name_en} / {category.name_ar}
             </div>
           ))}
         </div>
-      </div>
-      </main>
-    </AdminAuthGate>
+      </section>
+    </AdminShell>
   );
 }

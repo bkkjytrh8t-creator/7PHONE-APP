@@ -2,27 +2,29 @@
 
 import {useState} from 'react';
 import {useRouter} from 'next/navigation';
-import {isSupabaseConfigured, supabase} from '@/lib/supabase';
 import type {Locale} from '@/lib/types';
 
 export function AdminLoginForm({locale}: {locale: Locale}) {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('admin@7phone.app');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setIsSubmitting(true);
+    setMessage('');
 
-    if (!supabase) {
-      setMessage('Supabase is not configured.');
-      return;
-    }
+    const response = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email, password})
+    });
 
-    const {error} = await supabase.auth.signInWithPassword({email, password});
-
-    if (error) {
-      setMessage(error.message);
+    if (!response.ok) {
+      setMessage(locale === 'ar' ? 'بيانات الدخول غير صحيحة.' : 'Invalid admin login.');
+      setIsSubmitting(false);
       return;
     }
 
@@ -30,38 +32,36 @@ export function AdminLoginForm({locale}: {locale: Locale}) {
     router.refresh();
   }
 
-  if (!isSupabaseConfigured) {
-    return (
-      <p className="rounded-2xl bg-zinc-50 p-4 font-semibold text-zinc-600">
-        Add Supabase environment variables before admin login can be used.
-      </p>
-    );
-  }
-
   return (
-    <form className="mt-6 grid gap-4" onSubmit={submit}>
-      <label className="grid gap-2 font-bold">
-        Email
+    <form className="mt-6 grid gap-4" dir={locale === 'ar' ? 'rtl' : 'ltr'} onSubmit={submit}>
+      <label className="grid gap-2 text-sm font-bold text-zinc-200">
+        {locale === 'ar' ? 'البريد الإلكتروني' : 'Email'}
         <input
-          className="rounded-2xl border border-zinc-200 px-4 py-3 outline-none focus:border-brand-neon"
+          autoComplete="username"
+          className="h-12 rounded-md border border-white/10 bg-zinc-950 px-4 text-white outline-none focus:border-brand-neon"
           onChange={(event) => setEmail(event.target.value)}
           required
           type="email"
           value={email}
         />
       </label>
-      <label className="grid gap-2 font-bold">
-        Password
+      <label className="grid gap-2 text-sm font-bold text-zinc-200">
+        {locale === 'ar' ? 'كلمة المرور' : 'Password'}
         <input
-          className="rounded-2xl border border-zinc-200 px-4 py-3 outline-none focus:border-brand-neon"
+          autoComplete="current-password"
+          className="h-12 rounded-md border border-white/10 bg-zinc-950 px-4 text-white outline-none focus:border-brand-neon"
           onChange={(event) => setPassword(event.target.value)}
           required
           type="password"
           value={password}
         />
       </label>
-      <button className="rounded-full bg-brand-neon px-5 py-3 font-black text-white" type="submit">
-        Login
+      <button
+        className="h-12 rounded-md bg-brand-neon px-5 text-sm font-black text-white disabled:opacity-60"
+        disabled={isSubmitting}
+        type="submit"
+      >
+        {isSubmitting ? (locale === 'ar' ? 'جاري الدخول...' : 'Signing in...') : locale === 'ar' ? 'دخول' : 'Login'}
       </button>
       {message ? <p className="font-semibold text-brand-pink">{message}</p> : null}
     </form>

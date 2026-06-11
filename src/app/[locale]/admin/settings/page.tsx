@@ -1,4 +1,4 @@
-import {AdminAuthGate} from '@/components/AdminAuthGate';
+import {AdminShell} from '@/components/AdminShell';
 import {AdminSettingsManager} from '@/components/AdminSettingsManager';
 import {getSettings} from '@/lib/data';
 import type {Locale} from '@/lib/types';
@@ -9,10 +9,8 @@ export default async function AdminSettingsPage({params}: {params: Promise<{loca
   const settings = await getSettings();
 
   return (
-    <AdminAuthGate locale={locale}>
-      <main className="min-h-screen bg-zinc-100 px-4 py-10">
-        <AdminSettingsManager locale={locale} settings={settings} />
-      </main>
-    </AdminAuthGate>
+    <AdminShell locale={locale}>
+      <AdminSettingsManager locale={locale} settings={settings} />
+    </AdminShell>
   );
 }
