@@ -1,11 +1,9 @@
 'use client';
 
 import {useState} from 'react';
-import {useRouter} from 'next/navigation';
 import type {Locale} from '@/lib/types';
 
 export function AdminLoginForm({locale}: {locale: Locale}) {
-  const router = useRouter();
   const [email, setEmail] = useState('admin@7phone.app');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
@@ -18,6 +16,7 @@ export function AdminLoginForm({locale}: {locale: Locale}) {
 
     const response = await fetch('/api/admin/login', {
       method: 'POST',
+      credentials: 'same-origin',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({email, password})
     });
@@ -28,8 +27,7 @@ export function AdminLoginForm({locale}: {locale: Locale}) {
       return;
     }
 
-    router.push(`/${locale}/admin`);
-    router.refresh();
+    window.location.assign(`/${locale}/admin`);
   }
 
   return (

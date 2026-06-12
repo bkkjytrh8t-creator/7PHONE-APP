@@ -47,7 +47,7 @@ function sign(value: string) {
 
 export function validateAdminCredentials(email: string, password: string) {
   const isEmailValid = email.trim().toLowerCase() === getAdminEmail().toLowerCase();
-  const isPasswordValid = safeCompare(hashPassword(password), getPasswordHash());
+  const isPasswordValid = safeCompare(hashPassword(password.trim()), getPasswordHash());
 
   return isEmailValid && isPasswordValid;
 }
