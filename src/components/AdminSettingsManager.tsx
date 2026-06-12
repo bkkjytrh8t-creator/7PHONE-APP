@@ -2,6 +2,7 @@
 
 import {useEffect, useState} from 'react';
 import type {Locale, StoreSettings} from '@/lib/types';
+import {FallbackImage} from './FallbackImage';
 
 const localLogoKey = '7phone-store-logo';
 const localBannerKey = '7phone-store-banner';
@@ -216,6 +217,12 @@ export function AdminSettingsManager({
     [locale === 'ar' ? 'رابط الموقع' : 'Site URL', settings.siteUrl]
   ];
 
+  const logoFallback = (
+    <div className="grid h-20 w-20 place-items-center rounded-full bg-brand-pink text-3xl font-black text-white">
+      7
+    </div>
+  );
+
   function saveTemporarySettings() {
     window.localStorage.setItem('7phone-admin-payment-options', paymentOptions);
     window.localStorage.setItem('7phone-admin-delivery-options', deliveryOptions);
@@ -233,15 +240,11 @@ export function AdminSettingsManager({
 
         <div className="mt-6 grid gap-5 md:grid-cols-[220px_1fr]">
           <div className="grid h-44 place-items-center rounded-lg border border-white/10 bg-white/[0.03] p-4">
-            {logo ? (
-              <div className="grid h-32 w-32 place-items-center overflow-hidden rounded-full bg-white shadow-sm ring-1 ring-white/10">
-                <img alt="Store logo preview" className="h-full w-full rounded-full object-cover" src={logo} />
-              </div>
-            ) : (
-              <div className="grid h-20 w-20 place-items-center rounded-full bg-brand-pink text-3xl font-black text-white">
-                7
-              </div>
-            )}
+            <div className="grid h-32 w-32 place-items-center overflow-hidden rounded-full bg-white shadow-sm ring-1 ring-white/10">
+              <FallbackImage alt="Store logo preview" className="h-full w-full rounded-full object-cover" src={logo}>
+                {logoFallback}
+              </FallbackImage>
+            </div>
           </div>
 
           <div className="grid content-start gap-3">

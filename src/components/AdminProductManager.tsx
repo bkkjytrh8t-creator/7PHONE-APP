@@ -2,6 +2,7 @@
 
 import {useEffect, useMemo, useState} from 'react';
 import type {Badge, Brand, Category, Locale, Product} from '@/lib/types';
+import {FallbackImage} from './FallbackImage';
 
 const localProductsKey = '7phone-admin-products';
 const publicPreviewProductsKey = '7phone-local-products';
@@ -67,7 +68,7 @@ const ui = {
     temp: 'Temporary data layer: changes are saved in this admin browser only and do not overwrite the live product seed yet.',
     image: 'Upload or change product image',
     approveUpload: 'Approve & Upload Image',
-    replaceImage: 'Replace current product image',
+    replaceImage: 'Use as main product image',
     deleteImage: 'Delete image',
     imageHelp: 'JPG, PNG, or WEBP only. Maximum 3 MB.',
     noProductForUpload: 'Save or edit a real product before uploading images.',
@@ -115,7 +116,7 @@ const ui = {
     temp: 'طبقة بيانات مؤقتة: التعديلات تحفظ في متصفح الإدارة فقط ولا تستبدل بيانات الموقع الحي بعد.',
     image: 'رفع أو تغيير صورة المنتج',
     approveUpload: 'اعتماد ورفع الصورة',
-    replaceImage: 'استبدال صورة المنتج الحالية',
+    replaceImage: 'استخدامها كصورة المنتج الرئيسية',
     deleteImage: 'حذف الصورة',
     imageHelp: 'JPG أو PNG أو WEBP فقط. الحد الأقصى 3MB.',
     noProductForUpload: 'احفظ أو عدّل منتجاً حقيقياً قبل رفع الصور.',
@@ -271,7 +272,6 @@ export function AdminProductManager({
   const [localProducts, setLocalProducts] = useState<Product[]>([]);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState('');
-  const [replaceExistingImage, setReplaceExistingImage] = useState(true);
   const [imageStatus, setImageStatus] = useState('');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [form, setForm] = useState<ProductForm>({
@@ -337,7 +337,6 @@ export function AdminProductManager({
 
   function editProduct(product: Product) {
     setForm(formFromProduct(product));
-    setReplaceExistingImage(Boolean(product.images[0]));
     setSelectedImage(null);
     setImagePreview('');
     setImageStatus('');
@@ -354,14 +353,11 @@ export function AdminProductManager({
     persist(nextProducts);
   }
 
-  function syncUploadedImage(url: string, replaceExisting: boolean) {
+  function syncUploadedImage(url: string) {
     setForm((current) => {
-      const currentImages = splitList(current.images);
-      const nextImages = replaceExisting ? [url] : [...currentImages, url];
-
       const nextForm = {
         ...current,
-        images: nextImages.join('\n')
+        images: url
       };
 
       upsertProductFromForm(nextForm);
@@ -419,7 +415,7 @@ export function AdminProductManager({
 
     const body = new FormData();
     body.set('productId', String(form.id));
-    body.set('replaceExisting', String(replaceExistingImage));
+    body.set('replaceExisting', 'true');
     body.set('file', selectedImage);
 
     try {
@@ -427,14 +423,14 @@ export function AdminProductManager({
         method: 'POST',
         body
       });
-      const result = (await response.json()) as {ok?: boolean; url?: string; message?: string};
+      const result = (await response.json()) as {ok?: boolean; temporary?: boolean; url?: string; message?: string};
 
       if (!response.ok || !result.ok || !result.url) {
         setImageStatus(result.message || (locale === 'ar' ? 'فشل رفع الصورة.' : 'Image upload failed.'));
         return;
       }
 
-      syncUploadedImage(result.url, replaceExistingImage);
+      syncUploadedImage(result.temporary && imagePreview ? imagePreview : result.url);
       setSelectedImage(null);
       setImagePreview('');
       setImageStatus(copy.imageUploaded);
@@ -548,7 +544,7 @@ export function AdminProductManager({
             <img alt="" className="max-h-56 w-full rounded-md object-contain" src={imagePreview} />
           ) : null}
           <label className="flex items-center gap-2 text-sm font-black text-zinc-200">
-            <input checked={replaceExistingImage} onChange={(event) => setReplaceExistingImage(event.target.checked)} type="checkbox" />
+            <input checked disabled readOnly type="checkbox" />
             {copy.replaceImage}
           </label>
           <div className="flex flex-wrap gap-2">
@@ -566,7 +562,9 @@ export function AdminProductManager({
               {splitList(form.images).map((imageUrl) => (
                 <div className="grid gap-2 rounded-md border border-white/10 bg-black/30 p-2 sm:grid-cols-[52px_1fr_auto] sm:items-center" key={imageUrl}>
                   <div className="grid h-12 w-12 place-items-center overflow-hidden rounded bg-white/5">
-                    <img alt="" className="h-full w-full object-cover" src={imageUrl} />
+                    <FallbackImage alt="" className="h-full w-full object-cover" src={imageUrl}>
+                      <span className="text-xs font-black text-zinc-500">7</span>
+                    </FallbackImage>
                   </div>
                   <span className="min-w-0 truncate text-xs font-bold text-zinc-400">{imageUrl}</span>
                   <button
@@ -629,7 +627,9 @@ export function AdminProductManager({
           {allProducts.map((product) => (
             <div className="grid gap-3 border-b border-white/10 p-4 md:grid-cols-[68px_1fr_auto]" key={product.id}>
               <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-md bg-white/5 text-xs font-black text-zinc-500">
-                {product.images[0] ? <img alt="" className="h-full w-full object-cover" src={product.images[0]} /> : '7'}
+                <FallbackImage alt="" className="h-full w-full object-cover" src={product.images[0]}>
+                  <span>7</span>
+                </FallbackImage>
               </div>
               <div className="min-w-0">
                 <strong className="block truncate text-sm text-white">{locale === 'ar' ? product.name_ar : product.name_en}</strong>

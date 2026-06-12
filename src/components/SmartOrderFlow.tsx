@@ -3,6 +3,7 @@
 import {useMemo, useState} from 'react';
 import {formatPrice, productName} from '@/lib/format';
 import type {Locale, Product, StoreSettings} from '@/lib/types';
+import {productPageUrl} from '@/lib/whatsapp';
 
 type LocationState = {lat: number; lng: number} | null;
 
@@ -52,7 +53,8 @@ export function SmartOrderFlow({
       `الهاتف: ${phone || '-'}`,
       `المنطقة: ${area || '-'}`,
       `الموقع: ${mapsLink || '-'}`,
-      `المجموع: ${formatPrice(total, locale)}`
+      `المجموع: ${formatPrice(total, locale)}`,
+      `رابط المنتج: ${productPageUrl(product, locale)}`
     ];
     return lines.join('\n');
   }, [accessories, area, color, delivery, invoiceNo, locale, mapsLink, name, payment, phone, product, storage, total]);
@@ -73,7 +75,7 @@ export function SmartOrderFlow({
     });
   }
 
-  const whatsappUrl = `https://wa.me/${settings.whatsapp}?text=${encodeURIComponent(invoiceText)}`;
+  const whatsappUrl = `https://wa.me/39011777?text=${encodeURIComponent(invoiceText)}`;
 
   return (
     <section id="order" className="grid gap-4 rounded-2xl border border-white/10 bg-white/[0.06] p-4 shadow-neon md:p-5">

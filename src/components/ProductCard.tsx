@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import {brandName, categoryName, formatPrice, productName} from '@/lib/format';
 import type {Locale, Product, StoreSettings} from '@/lib/types';
+import {FallbackImage} from './FallbackImage';
 import {ProductLikeButton} from './ProductLikeButton';
 import {ProductStats} from './ProductStats';
 import {WhatsAppButton} from './WhatsAppButton';
@@ -24,16 +25,14 @@ export function ProductCard({
       <div className="relative">
         <Link href={`/${locale}/product/${product.id}`} className="block">
           <div className="relative grid aspect-square place-items-center bg-[#111115] p-3">
-          {image ? (
-            <img alt={name} className="h-full w-full rounded-xl object-cover" src={image} />
-          ) : (
+          <FallbackImage alt={name} className="h-full w-full rounded-xl object-cover" src={image}>
             <div className="grid h-full w-full place-items-center rounded-xl bg-black text-center text-xs font-bold leading-5 text-white">
               <span>
                 <span className="mx-auto mb-3 block h-20 w-20 rounded-[24px] border border-brand-neon/40 bg-gradient-to-br from-white/20 via-black to-brand-neon/30" />
                 {name}
               </span>
             </div>
-          )}
+          </FallbackImage>
           {product.badge !== 'none' && (
             <span className="absolute start-2.5 top-2.5 rounded-md bg-brand-neon px-2 py-1 text-[10px] font-black uppercase text-white">
               {product.badge.replace('-', ' ')}

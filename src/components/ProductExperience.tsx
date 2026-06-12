@@ -3,6 +3,7 @@
 import {useMemo, useState} from 'react';
 import {formatPrice, productName} from '@/lib/format';
 import type {Locale, Product} from '@/lib/types';
+import {FallbackImage} from './FallbackImage';
 import {ProductLikeButton} from './ProductLikeButton';
 
 export function ProductExperience({product, locale}: {product: Product; locale: Locale}) {
@@ -35,13 +36,11 @@ export function ProductExperience({product, locale}: {product: Product; locale: 
           initialLikes={product.likes}
           label={locale === 'ar' ? 'إعجاب بالمنتج' : 'Like product'}
         />
-        {activeImage ? (
-          <img alt={productName(product, locale)} className="h-full w-full rounded-xl object-cover" src={activeImage} />
-        ) : (
+        <FallbackImage alt={productName(product, locale)} className="h-full w-full rounded-xl object-cover" src={activeImage}>
           <div className="grid h-full w-full place-items-center rounded-[28px] bg-black text-center text-white">
             <div className={`h-56 w-40 rounded-[34px] border border-white/20 bg-gradient-to-br ${colorClass} shadow-neon-strong`} />
           </div>
-        )}
+        </FallbackImage>
       </div>
 
       {images.length > 1 ? (
@@ -54,7 +53,9 @@ export function ProductExperience({product, locale}: {product: Product; locale: 
               onClick={() => setActiveImage(image)}
               type="button"
             >
-              <img alt="" className="h-full w-full rounded-lg object-cover" src={image} />
+              <FallbackImage alt="" className="h-full w-full rounded-lg object-cover" src={image}>
+                <div className={`h-full w-full rounded-lg bg-gradient-to-br ${colorClass}`} />
+              </FallbackImage>
             </button>
           ))}
         </div>
