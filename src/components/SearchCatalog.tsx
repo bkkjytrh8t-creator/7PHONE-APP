@@ -32,7 +32,10 @@ export function SearchCatalog({
   const [activeCategory, setActiveCategory] = useState('all');
   const [activeBrand, setActiveBrand] = useState('all');
   const [localProducts, setLocalProducts] = useState<Product[]>([]);
-  const catalogProducts = useMemo(() => [...localProducts, ...products], [localProducts, products]);
+  const catalogProducts = useMemo(() => {
+    const localIds = new Set(localProducts.map((product) => product.id));
+    return [...localProducts, ...products.filter((product) => !localIds.has(product.id))];
+  }, [localProducts, products]);
 
   useEffect(() => {
     function loadLocalProducts() {

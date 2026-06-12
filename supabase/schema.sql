@@ -78,3 +78,7 @@ create policy "Admins can manage brands" on public.brands for all using (auth.ro
 create policy "Admins can manage products" on public.products for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 create policy "Admins can manage product images" on public.product_images for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 create policy "Admins can manage settings" on public.settings for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+
+insert into storage.buckets (id, name, public)
+values ('product-images', 'product-images', true)
+on conflict (id) do update set public = true;

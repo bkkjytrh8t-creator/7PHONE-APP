@@ -4,6 +4,7 @@ import {useEffect, useMemo, useState} from 'react';
 import type {Badge, Brand, Category, Locale, Product} from '@/lib/types';
 
 const localProductsKey = '7phone-admin-products';
+const publicPreviewProductsKey = '7phone-local-products';
 
 type ProductForm = {
   id?: number;
@@ -65,6 +66,16 @@ const ui = {
     hidden: 'Hidden / out',
     temp: 'Temporary data layer: changes are saved in this admin browser only and do not overwrite the live product seed yet.',
     image: 'Upload or change product image',
+    approveUpload: 'Approve & Upload Image',
+    replaceImage: 'Replace current product image',
+    deleteImage: 'Delete image',
+    imageHelp: 'JPG, PNG, or WEBP only. Maximum 3 MB.',
+    noProductForUpload: 'Save or edit a real product before uploading images.',
+    imageReady: 'Preview ready. Approve to upload.',
+    imageUploaded: 'Image uploaded and saved to product data.',
+    imageDeleted: 'Image deleted from product data.',
+    imageTypeError: 'Only JPG, PNG, and WEBP images are allowed.',
+    imageSizeError: 'Image is too large. Maximum size is 3 MB.',
     list: 'Product list',
     saved: 'Saved in temporary admin storage.',
     fields: {
@@ -103,6 +114,16 @@ const ui = {
     hidden: 'مخفي / غير متوفر',
     temp: 'طبقة بيانات مؤقتة: التعديلات تحفظ في متصفح الإدارة فقط ولا تستبدل بيانات الموقع الحي بعد.',
     image: 'رفع أو تغيير صورة المنتج',
+    approveUpload: 'اعتماد ورفع الصورة',
+    replaceImage: 'استبدال صورة المنتج الحالية',
+    deleteImage: 'حذف الصورة',
+    imageHelp: 'JPG أو PNG أو WEBP فقط. الحد الأقصى 3MB.',
+    noProductForUpload: 'احفظ أو عدّل منتجاً حقيقياً قبل رفع الصور.',
+    imageReady: 'المعاينة جاهزة. اضغط اعتماد للرفع.',
+    imageUploaded: 'تم رفع الصورة وحفظها في بيانات المنتج.',
+    imageDeleted: 'تم حذف الصورة من بيانات المنتج.',
+    imageTypeError: 'يسمح فقط بصور JPG و PNG و WEBP.',
+    imageSizeError: 'حجم الصورة كبير. الحد الأقصى 3MB.',
     list: 'قائمة المنتجات',
     saved: 'تم الحفظ في التخزين المؤقت للإدارة.',
     fields: {
@@ -149,6 +170,8 @@ function readLocalProducts() {
 
 function saveLocalProducts(products: Product[]) {
   window.localStorage.setItem(localProductsKey, JSON.stringify(products));
+  window.localStorage.setItem(publicPreviewProductsKey, JSON.stringify(products));
+  window.dispatchEvent(new Event('7phone-products-updated'));
 }
 
 function badgeFromForm(form: ProductForm): Badge {
@@ -246,6 +269,11 @@ export function AdminProductManager({
 }) {
   const copy = ui[locale];
   const [localProducts, setLocalProducts] = useState<Product[]>([]);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [replaceExistingImage, setReplaceExistingImage] = useState(true);
+  const [imageStatus, setImageStatus] = useState('');
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [form, setForm] = useState<ProductForm>({
     ...emptyForm,
     brandId: String(brands[0]?.id ?? ''),
@@ -272,12 +300,26 @@ export function AdminProductManager({
       brandId: String(brands[0]?.id ?? ''),
       categoryId: String(categories[0]?.id ?? '')
     });
+    setSelectedImage(null);
+    setImagePreview('');
+    setImageStatus('');
   }
 
   function persist(nextProducts: Product[]) {
     setLocalProducts(nextProducts);
     saveLocalProducts(nextProducts);
     setStatus(copy.saved);
+  }
+
+  function upsertProductFromForm(nextForm: ProductForm) {
+    const fallback = allProducts.find((product) => product.id === nextForm.id);
+    const nextProduct = productFromForm(nextForm, brands, categories, fallback);
+    const isExistingLocalProduct = localProducts.some((product) => product.id === nextForm.id);
+    const nextProducts = nextForm.id && isExistingLocalProduct
+      ? localProducts.map((product) => (product.id === nextForm.id ? nextProduct : product))
+      : [nextProduct, ...localProducts];
+
+    persist(nextProducts);
   }
 
   function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -295,6 +337,10 @@ export function AdminProductManager({
 
   function editProduct(product: Product) {
     setForm(formFromProduct(product));
+    setReplaceExistingImage(Boolean(product.images[0]));
+    setSelectedImage(null);
+    setImagePreview('');
+    setImageStatus('');
     setStatus('');
   }
 
@@ -308,18 +354,121 @@ export function AdminProductManager({
     persist(nextProducts);
   }
 
-  function onImageChange(file: File | null) {
-    if (!file) return;
+  function syncUploadedImage(url: string, replaceExisting: boolean) {
+    setForm((current) => {
+      const currentImages = splitList(current.images);
+      const nextImages = replaceExisting ? [url] : [...currentImages, url];
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const nextImage = String(reader.result);
-      setForm((current) => ({
+      const nextForm = {
         ...current,
-        images: current.images ? `${current.images}\n${nextImage}` : nextImage
-      }));
-    };
+        images: nextImages.join('\n')
+      };
+
+      upsertProductFromForm(nextForm);
+
+      return nextForm;
+    });
+  }
+
+  function removeImageFromForm(url: string) {
+    setForm((current) => {
+      const nextForm = {
+        ...current,
+        images: splitList(current.images).filter((imageUrl) => imageUrl !== url).join('\n')
+      };
+
+      upsertProductFromForm(nextForm);
+
+      return nextForm;
+    });
+  }
+
+  function onImageChange(file: File | null) {
+    setSelectedImage(null);
+    setImagePreview('');
+
+    if (!file) {
+      return;
+    }
+
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setImageStatus(copy.imageTypeError);
+      return;
+    }
+
+    if (file.size > 3 * 1024 * 1024) {
+      setImageStatus(copy.imageSizeError);
+      return;
+    }
+
+    setSelectedImage(file);
+    setImageStatus(copy.imageReady);
+    const reader = new FileReader();
+    reader.onload = () => setImagePreview(String(reader.result));
     reader.readAsDataURL(file);
+  }
+
+  async function approveUploadImage() {
+    if (!selectedImage || !form.id) {
+      setImageStatus(copy.noProductForUpload);
+      return;
+    }
+
+    setIsUploadingImage(true);
+    setImageStatus('');
+
+    const body = new FormData();
+    body.set('productId', String(form.id));
+    body.set('replaceExisting', String(replaceExistingImage));
+    body.set('file', selectedImage);
+
+    try {
+      const response = await fetch('/api/admin/product-images', {
+        method: 'POST',
+        body
+      });
+      const result = (await response.json()) as {ok?: boolean; url?: string; message?: string};
+
+      if (!response.ok || !result.ok || !result.url) {
+        setImageStatus(result.message || (locale === 'ar' ? 'فشل رفع الصورة.' : 'Image upload failed.'));
+        return;
+      }
+
+      syncUploadedImage(result.url, replaceExistingImage);
+      setSelectedImage(null);
+      setImagePreview('');
+      setImageStatus(copy.imageUploaded);
+    } catch {
+      setImageStatus(locale === 'ar' ? 'تعذر الاتصال بخدمة رفع الصور.' : 'Could not reach the image upload service.');
+    } finally {
+      setIsUploadingImage(false);
+    }
+  }
+
+  async function deleteUploadedImage(url: string) {
+    if (!form.id) {
+      removeImageFromForm(url);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/admin/product-images', {
+        method: 'DELETE',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({productId: form.id, url})
+      });
+      const result = (await response.json()) as {message?: string};
+
+      if (!response.ok) {
+        setImageStatus(result.message || (locale === 'ar' ? 'فشل حذف الصورة.' : 'Image delete failed.'));
+        return;
+      }
+
+      removeImageFromForm(url);
+      setImageStatus(copy.imageDeleted);
+    } catch {
+      setImageStatus(locale === 'ar' ? 'تعذر الاتصال بخدمة حذف الصور.' : 'Could not reach the image delete service.');
+    }
   }
 
   return (
@@ -383,14 +532,55 @@ export function AdminProductManager({
           <textarea className="admin-textarea" onChange={(event) => updateField('accessories', event.target.value)} placeholder="Case / كفر / 5" value={form.accessories} />
         </Field>
 
-        <div className="grid gap-3 md:grid-cols-[1fr_150px]">
+        <div className="grid gap-3 md:grid-cols-[1fr_190px]">
           <Field label={copy.fields.images}>
             <textarea className="admin-textarea" onChange={(event) => updateField('images', event.target.value)} value={form.images} />
           </Field>
           <label className="grid content-center gap-2 rounded-lg border border-dashed border-white/15 bg-white/[0.03] p-3 text-xs font-black text-zinc-300">
             {copy.image}
-            <input accept="image/*" className="text-xs" onChange={(event) => onImageChange(event.target.files?.[0] ?? null)} type="file" />
+            <input accept="image/jpeg,image/png,image/webp" className="text-xs" onChange={(event) => onImageChange(event.target.files?.[0] ?? null)} type="file" />
+            <span className="text-[11px] font-bold leading-4 text-zinc-500">{copy.imageHelp}</span>
           </label>
+        </div>
+
+        <div className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
+          {imagePreview ? (
+            <img alt="" className="max-h-56 w-full rounded-md object-contain" src={imagePreview} />
+          ) : null}
+          <label className="flex items-center gap-2 text-sm font-black text-zinc-200">
+            <input checked={replaceExistingImage} onChange={(event) => setReplaceExistingImage(event.target.checked)} type="checkbox" />
+            {copy.replaceImage}
+          </label>
+          <div className="flex flex-wrap gap-2">
+            <button
+              className="h-10 rounded-md bg-brand-neon px-4 text-xs font-black text-white disabled:opacity-50"
+              disabled={!selectedImage || isUploadingImage}
+              onClick={approveUploadImage}
+              type="button"
+            >
+              {isUploadingImage ? (locale === 'ar' ? 'جاري الرفع...' : 'Uploading...') : copy.approveUpload}
+            </button>
+          </div>
+          {splitList(form.images).length ? (
+            <div className="grid gap-2">
+              {splitList(form.images).map((imageUrl) => (
+                <div className="grid gap-2 rounded-md border border-white/10 bg-black/30 p-2 sm:grid-cols-[52px_1fr_auto] sm:items-center" key={imageUrl}>
+                  <div className="grid h-12 w-12 place-items-center overflow-hidden rounded bg-white/5">
+                    <img alt="" className="h-full w-full object-cover" src={imageUrl} />
+                  </div>
+                  <span className="min-w-0 truncate text-xs font-bold text-zinc-400">{imageUrl}</span>
+                  <button
+                    className="rounded-md bg-red-500/15 px-3 py-2 text-xs font-black text-red-200"
+                    onClick={() => deleteUploadedImage(imageUrl)}
+                    type="button"
+                  >
+                    {copy.deleteImage}
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : null}
+          {imageStatus ? <p className="rounded-md bg-white/5 px-3 py-2 text-sm font-bold text-zinc-200">{imageStatus}</p> : null}
         </div>
 
         <div className="grid gap-3 md:grid-cols-2">
