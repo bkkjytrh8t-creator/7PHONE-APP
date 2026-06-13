@@ -11,37 +11,44 @@ function jsonError(message: string, status: number) {
 }
 
 function productRow(product: Product) {
+  const imageUrl = primaryProductImage(product);
+
   return {
     id: product.id,
     name_en: product.name_en,
     name_ar: product.name_ar,
+    brand: product.brand.name_en,
+    category: product.category.slug,
     description_en: product.description_en,
     description_ar: product.description_ar,
-    price_bhd: product.price_bhd,
-    old_price_bhd: product.old_price_bhd,
-    storage_prices: product.storage_prices,
+    specs_en: product.specifications_en,
+    specs_ar: product.specifications_ar,
     accessories: product.accessories,
-    comparison: product.comparison,
-    brand_id: product.brand.id,
-    category_id: product.category.id,
-    condition: product.condition,
-    warranty: product.warranty,
-    installments: product.installments,
-    badge: product.badge,
-    stock_status: product.stock_status,
+    price: product.price_bhd,
+    old_price: product.old_price_bhd,
+    image_url: imageUrl || null,
+    image_urls: imageUrl ? [imageUrl] : [],
+    status: product.stock_status,
+    is_featured: product.badge === 'best-seller',
+    is_new: product.badge === 'new',
+    is_offer: product.badge === 'deal',
     views: product.views,
-    shares: product.shares,
-    orders: product.orders,
-    is_active: product.is_active,
-    storage: product.storage,
-    colors: product.colors,
-    specifications_en: product.specifications_en,
-    specifications_ar: product.specifications_ar,
     likes: product.likes,
-    sold_count: product.sold_count,
-    rating: product.rating,
-    review_count: product.review_count,
-    created_at: product.created_at
+    whatsapp_clicks: product.orders,
+    sort_order: product.views,
+    data: {
+      storage_prices: product.storage_prices,
+      comparison: product.comparison,
+      condition: product.condition,
+      warranty: product.warranty,
+      installments: product.installments,
+      shares: product.shares,
+      sold_count: product.sold_count,
+      rating: product.rating,
+      review_count: product.review_count,
+      storage: product.storage,
+      colors: product.colors
+    }
   };
 }
 
