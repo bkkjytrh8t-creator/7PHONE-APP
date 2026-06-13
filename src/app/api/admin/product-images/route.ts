@@ -134,10 +134,24 @@ export async function POST(request: Request) {
     await supabaseAdmin.from('product_images').delete().eq('product_id', productId);
   }
 
+  let sortOrder = 0;
+
+  if (!replaceExisting) {
+    const {data: latestImage} = await supabaseAdmin
+      .from('product_images')
+      .select('sort_order')
+      .eq('product_id', productId)
+      .order('sort_order', {ascending: false})
+      .limit(1)
+      .maybeSingle();
+
+    sortOrder = Number(latestImage?.sort_order ?? -1) + 1;
+  }
+
   const {error: insertError} = await supabaseAdmin.from('product_images').insert({
     product_id: productId,
     url: publicUrl,
-    sort_order: replaceExisting ? 0 : Date.now()
+    sort_order: sortOrder
   });
 
   if (insertError) {
