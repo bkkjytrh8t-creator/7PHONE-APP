@@ -15,8 +15,8 @@ export default async function AdminProductsPage({params}: {params: Promise<{loca
         <h2 className="text-2xl font-black text-white">{locale === 'ar' ? 'المنتجات' : 'Products'}</h2>
         <p className="mt-2 text-sm font-semibold text-zinc-400">
           {locale === 'ar'
-            ? 'إضافة وتعديل وحذف المنتجات مؤقتاً داخل لوحة الإدارة.'
-            : 'Add, edit, and delete products temporarily inside the admin panel.'}
+            ? 'إضافة وتعديل وحفظ المنتجات دائماً عند توفر Supabase، مع fallback مؤقت عند عدم تهيئة التخزين.'
+            : 'Add, edit, and save products permanently when Supabase is configured, with temporary fallback when storage is not configured.'}
         </p>
         <AdminProductManager
           locale={locale}

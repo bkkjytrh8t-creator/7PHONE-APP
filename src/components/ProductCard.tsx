@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import {brandName, categoryName, formatPrice, productName} from '@/lib/format';
+import {primaryProductImage, productRouteKey} from '@/lib/productNormalize';
 import type {Locale, Product, StoreSettings} from '@/lib/types';
 import {FallbackImage} from './FallbackImage';
 import {ProductLikeButton} from './ProductLikeButton';
@@ -18,12 +19,13 @@ export function ProductCard({
   orderLabel: string;
 }) {
   const name = productName(product, locale);
-  const image = product.images[0];
+  const image = primaryProductImage(product);
+  const productHref = `/${locale}/product/${productRouteKey(product)}`;
 
   return (
     <article className="group overflow-hidden rounded-2xl border border-white/10 bg-white/[0.06] shadow-sm transition hover:-translate-y-0.5 hover:border-brand-neon/60 hover:shadow-neon">
       <div className="relative">
-        <Link href={`/${locale}/product/${product.id}`} className="block">
+        <Link href={productHref} className="block">
           <div className="relative grid aspect-square place-items-center bg-[#111115] p-3">
           <FallbackImage alt={name} className="h-full w-full rounded-xl object-cover" src={image}>
             <div className="grid h-full w-full place-items-center rounded-xl bg-black text-center text-xs font-bold leading-5 text-white">
@@ -49,7 +51,7 @@ export function ProductCard({
           label={locale === 'ar' ? 'إعجاب بالمنتج' : 'Like product'}
         />
       </div>
-      <Link href={`/${locale}/product/${product.id}`} className="block">
+      <Link href={productHref} className="block">
         <div className="space-y-2.5 p-3.5">
           <div className="flex items-center justify-between gap-3 text-[11px] font-bold uppercase text-white/40">
             <span>{brandName(product, locale)}</span>
@@ -69,7 +71,7 @@ export function ProductCard({
         </div>
       </Link>
       <div className="grid grid-cols-2 gap-2 px-3.5 pb-3.5">
-        <Link className="grid h-10 place-items-center rounded-xl border border-white/10 text-xs font-black text-white hover:border-brand-neon" href={`/${locale}/product/${product.id}`}>
+        <Link className="grid h-10 place-items-center rounded-xl border border-white/10 text-xs font-black text-white hover:border-brand-neon" href={productHref}>
           عرض سريع
         </Link>
         {product.stock_status === 'available' ? (

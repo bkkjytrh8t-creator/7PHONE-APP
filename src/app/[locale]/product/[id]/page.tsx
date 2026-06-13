@@ -14,13 +14,18 @@ export default async function ProductPage({
   const {locale: localeParam, id} = await params;
   const locale = localeParam as Locale;
   const t = await getTranslations();
-  const [settings, product, products] = await Promise.all([getSettings(), getProduct(Number(id)), getProducts()]);
+  const numericId = Number(id);
+  const [settings, product, products] = await Promise.all([
+    getSettings(),
+    Number.isFinite(numericId) ? getProduct(numericId) : Promise.resolve(null),
+    getProducts()
+  ]);
 
   if (!product) {
     return (
       <>
         <Header locale={locale} settings={settings} />
-        <LocalProductDetailsFallback productId={Number(id)} locale={locale} settings={settings} />
+        <LocalProductDetailsFallback routeKey={id} locale={locale} settings={settings} />
         <Footer settings={settings} />
       </>
     );

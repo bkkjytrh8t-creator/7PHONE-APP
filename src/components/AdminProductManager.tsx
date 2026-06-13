@@ -1,6 +1,7 @@
 'use client';
 
 import {useEffect, useMemo, useState} from 'react';
+import {normalizeProduct, normalizeProducts, primaryProductImage} from '@/lib/productNormalize';
 import type {Badge, Brand, Category, Locale, Product} from '@/lib/types';
 import {FallbackImage} from './FallbackImage';
 
@@ -66,6 +67,8 @@ const ui = {
     active: 'Available',
     hidden: 'Hidden / out',
     temp: 'Temporary data layer: changes are saved in this admin browser only and do not overwrite the live product seed yet.',
+    permanentSaved: 'Saved permanently to Supabase.',
+    permanentUnavailable: 'Supabase is not configured. Saved temporarily in this browser only.',
     image: 'Upload or change product image',
     approveUpload: 'Approve & Upload Image',
     replaceImage: 'Use as main product image',
@@ -114,6 +117,8 @@ const ui = {
     active: 'متوفر',
     hidden: 'مخفي / غير متوفر',
     temp: 'طبقة بيانات مؤقتة: التعديلات تحفظ في متصفح الإدارة فقط ولا تستبدل بيانات الموقع الحي بعد.',
+    permanentSaved: 'تم الحفظ دائماً في Supabase.',
+    permanentUnavailable: 'Supabase غير مهيأ. تم الحفظ مؤقتاً في هذا المتصفح فقط.',
     image: 'رفع أو تغيير صورة المنتج',
     approveUpload: 'اعتماد ورفع الصورة',
     replaceImage: 'استخدامها كصورة المنتج الرئيسية',
@@ -160,18 +165,26 @@ function splitList(value: string) {
     .filter(Boolean);
 }
 
+function splitImageList(value: string) {
+  return value
+    .split(/\n/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function readLocalProducts() {
   try {
     const saved = window.localStorage.getItem(localProductsKey);
-    return saved ? (JSON.parse(saved) as Product[]) : [];
+    return saved ? normalizeProducts(JSON.parse(saved) as Product[]) : [];
   } catch {
     return [];
   }
 }
 
 function saveLocalProducts(products: Product[]) {
-  window.localStorage.setItem(localProductsKey, JSON.stringify(products));
-  window.localStorage.setItem(publicPreviewProductsKey, JSON.stringify(products));
+  const normalizedProducts = normalizeProducts(products);
+  window.localStorage.setItem(localProductsKey, JSON.stringify(normalizedProducts));
+  window.localStorage.setItem(publicPreviewProductsKey, JSON.stringify(normalizedProducts));
   window.dispatchEvent(new Event('7phone-products-updated'));
 }
 
@@ -199,7 +212,7 @@ function formFromProduct(product: Product): ProductForm {
     description_en: product.description_en,
     specifications_ar: product.specifications_ar.join('\n'),
     specifications_en: product.specifications_en.join('\n'),
-    images: product.images.join('\n'),
+    images: primaryProductImage(product),
     featured: product.badge === 'best-seller',
     newArrival: product.badge === 'new',
     offer: product.badge === 'deal',
@@ -214,7 +227,7 @@ function productFromForm(form: ProductForm, brands: Brand[], categories: Categor
   const storage = splitList(form.storage);
   const price = Number(form.price_bhd || 0);
 
-  return {
+  return normalizeProduct({
     id: form.id ?? Date.now(),
     name_en: form.name_en.trim(),
     name_ar: form.name_ar.trim(),
@@ -244,7 +257,7 @@ function productFromForm(form: ProductForm, brands: Brand[], categories: Categor
     shares: fallback?.shares ?? 0,
     orders: fallback?.orders ?? 0,
     is_active: form.stock_status === 'available',
-    images: splitList(form.images),
+    images: splitImageList(form.images).slice(0, 1),
     storage,
     colors: splitList(form.colors),
     specifications_en: splitList(form.specifications_en),
@@ -254,7 +267,7 @@ function productFromForm(form: ProductForm, brands: Brand[], categories: Categor
     rating: fallback?.rating ?? 0,
     review_count: fallback?.review_count ?? 0,
     created_at: fallback?.created_at ?? new Date().toISOString()
-  };
+  });
 }
 
 export function AdminProductManager({
@@ -287,7 +300,8 @@ export function AdminProductManager({
 
   const allProducts = useMemo(() => {
     const localIds = new Set(localProducts.map((product) => product.id));
-    return [...localProducts, ...seedProducts.filter((product) => !localIds.has(product.id))];
+    const normalizedSeedProducts = normalizeProducts(seedProducts);
+    return [...localProducts, ...normalizedSeedProducts.filter((product) => !localIds.has(product.id))];
   }, [localProducts, seedProducts]);
 
   function updateField(field: keyof ProductForm, value: string | boolean) {
@@ -311,28 +325,57 @@ export function AdminProductManager({
     setStatus(copy.saved);
   }
 
-  function upsertProductFromForm(nextForm: ProductForm) {
-    const fallback = allProducts.find((product) => product.id === nextForm.id);
-    const nextProduct = productFromForm(nextForm, brands, categories, fallback);
-    const isExistingLocalProduct = localProducts.some((product) => product.id === nextForm.id);
-    const nextProducts = nextForm.id && isExistingLocalProduct
-      ? localProducts.map((product) => (product.id === nextForm.id ? nextProduct : product))
+  async function persistProduct(nextProduct: Product, resetAfterSave = false) {
+    const isExistingLocalProduct = localProducts.some((product) => product.id === nextProduct.id);
+    const nextProducts = isExistingLocalProduct
+      ? localProducts.map((product) => (product.id === nextProduct.id ? nextProduct : product))
       : [nextProduct, ...localProducts];
 
-    persist(nextProducts);
+    try {
+      const response = await fetch('/api/admin/products', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({product: nextProduct})
+      });
+
+      if (response.ok) {
+        setLocalProducts(nextProducts);
+        saveLocalProducts(nextProducts);
+        setStatus(copy.permanentSaved);
+        if (resetAfterSave) {
+          resetForm();
+        }
+        return;
+      }
+
+      if (response.status !== 503) {
+        const result = (await response.json().catch(() => null)) as {message?: string} | null;
+        setStatus(result?.message || copy.permanentUnavailable);
+      } else {
+        setStatus(copy.permanentUnavailable);
+      }
+    } catch {
+      setStatus(copy.permanentUnavailable);
+    }
+
+    setLocalProducts(nextProducts);
+    saveLocalProducts(nextProducts);
+    if (resetAfterSave) {
+      resetForm();
+    }
   }
 
-  function submit(event: React.FormEvent<HTMLFormElement>) {
+  function upsertProductFromForm(nextForm: ProductForm) {
+    const fallback = allProducts.find((product) => product.id === nextForm.id);
+    const nextProduct = normalizeProduct(productFromForm(nextForm, brands, categories, fallback));
+    void persistProduct(nextProduct);
+  }
+
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const fallback = allProducts.find((product) => product.id === form.id);
-    const nextProduct = productFromForm(form, brands, categories, fallback);
-    const isExistingLocalProduct = localProducts.some((product) => product.id === form.id);
-    const nextProducts = form.id && isExistingLocalProduct
-      ? localProducts.map((product) => (product.id === form.id ? nextProduct : product))
-      : [nextProduct, ...localProducts];
-
-    persist(nextProducts);
-    resetForm();
+    const nextProduct = normalizeProduct(productFromForm(form, brands, categories, fallback));
+    await persistProduct(nextProduct, true);
   }
 
   function editProduct(product: Product) {
@@ -351,6 +394,11 @@ export function AdminProductManager({
       : [hiddenProduct, ...localProducts];
 
     persist(nextProducts);
+    fetch('/api/admin/products', {
+      method: 'DELETE',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({productId: product.id})
+    }).catch(() => undefined);
   }
 
   function syncUploadedImage(url: string) {
@@ -370,7 +418,7 @@ export function AdminProductManager({
     setForm((current) => {
       const nextForm = {
         ...current,
-        images: splitList(current.images).filter((imageUrl) => imageUrl !== url).join('\n')
+        images: splitImageList(current.images).filter((imageUrl) => imageUrl !== url).join('\n')
       };
 
       upsertProductFromForm(nextForm);
@@ -557,9 +605,9 @@ export function AdminProductManager({
               {isUploadingImage ? (locale === 'ar' ? 'جاري الرفع...' : 'Uploading...') : copy.approveUpload}
             </button>
           </div>
-          {splitList(form.images).length ? (
+          {splitImageList(form.images).length ? (
             <div className="grid gap-2">
-              {splitList(form.images).map((imageUrl) => (
+              {splitImageList(form.images).map((imageUrl) => (
                 <div className="grid gap-2 rounded-md border border-white/10 bg-black/30 p-2 sm:grid-cols-[52px_1fr_auto] sm:items-center" key={imageUrl}>
                   <div className="grid h-12 w-12 place-items-center overflow-hidden rounded bg-white/5">
                     <FallbackImage alt="" className="h-full w-full object-cover" src={imageUrl}>
@@ -627,7 +675,7 @@ export function AdminProductManager({
           {allProducts.map((product) => (
             <div className="grid gap-3 border-b border-white/10 p-4 md:grid-cols-[68px_1fr_auto]" key={product.id}>
               <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-md bg-white/5 text-xs font-black text-zinc-500">
-                <FallbackImage alt="" className="h-full w-full object-cover" src={product.images[0]}>
+                <FallbackImage alt="" className="h-full w-full object-cover" src={primaryProductImage(product)}>
                   <span>7</span>
                 </FallbackImage>
               </div>

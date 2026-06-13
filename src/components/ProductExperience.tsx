@@ -1,13 +1,14 @@
 'use client';
 
-import {useMemo, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {formatPrice, productName} from '@/lib/format';
+import {productImageSources} from '@/lib/productNormalize';
 import type {Locale, Product} from '@/lib/types';
 import {FallbackImage} from './FallbackImage';
 import {ProductLikeButton} from './ProductLikeButton';
 
 export function ProductExperience({product, locale}: {product: Product; locale: Locale}) {
-  const images = product.images.length ? product.images : [];
+  const images = useMemo(() => productImageSources(product), [product]);
   const [activeImage, setActiveImage] = useState(images[0] ?? '');
   const [activeColor, setActiveColor] = useState(product.colors[0] ?? '');
   const [activeStorage, setActiveStorage] = useState(product.storage_prices[0]?.label ?? product.storage[0] ?? '');
@@ -17,6 +18,10 @@ export function ProductExperience({product, locale}: {product: Product; locale: 
     [activeStorage, product.storage_prices]
   );
   const displayPrice = selectedStorage?.price_bhd ?? product.price_bhd;
+
+  useEffect(() => {
+    setActiveImage(images[0] ?? '');
+  }, [images]);
   const colorTone = activeColor.toLowerCase();
   const colorClass = colorTone.includes('white') || colorTone.includes('silver')
     ? 'from-white via-zinc-300 to-zinc-500'

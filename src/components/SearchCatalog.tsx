@@ -2,6 +2,7 @@
 
 import {useEffect, useMemo, useState} from 'react';
 import {brandName, categoryName, formatPrice, productName} from '@/lib/format';
+import {normalizeProducts} from '@/lib/productNormalize';
 import type {Category, Locale, Product, StoreSettings} from '@/lib/types';
 import {BrandBar} from './BrandBar';
 import {CategoryBar} from './CategoryBar';
@@ -33,15 +34,16 @@ export function SearchCatalog({
   const [activeBrand, setActiveBrand] = useState('all');
   const [localProducts, setLocalProducts] = useState<Product[]>([]);
   const catalogProducts = useMemo(() => {
+    const normalizedProducts = normalizeProducts(products);
     const localIds = new Set(localProducts.map((product) => product.id));
-    return [...localProducts, ...products.filter((product) => !localIds.has(product.id))];
+    return [...localProducts, ...normalizedProducts.filter((product) => !localIds.has(product.id))];
   }, [localProducts, products]);
 
   useEffect(() => {
     function loadLocalProducts() {
       try {
         const saved = window.localStorage.getItem('7phone-local-products');
-        setLocalProducts(saved ? (JSON.parse(saved) as Product[]) : []);
+        setLocalProducts(saved ? normalizeProducts(JSON.parse(saved) as Product[]) : []);
       } catch {
         setLocalProducts([]);
       }

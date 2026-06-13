@@ -3,6 +3,7 @@
 import {useEffect, useMemo, useState} from 'react';
 import Link from 'next/link';
 import {brandName, categoryName, formatPrice, productDescription, productName} from '@/lib/format';
+import {normalizeProduct, normalizeProducts} from '@/lib/productNormalize';
 import type {Locale, Product, StoreSettings} from '@/lib/types';
 import {ProductComparison} from './ProductComparison';
 import {ProductExperience} from './ProductExperience';
@@ -47,7 +48,7 @@ export function ProductDetailsContent({
     function loadLocalProducts() {
       try {
         const saved = window.localStorage.getItem(publicPreviewProductsKey);
-        setLocalProducts(saved ? (JSON.parse(saved) as Product[]) : []);
+        setLocalProducts(saved ? normalizeProducts(JSON.parse(saved) as Product[]) : []);
       } catch {
         setLocalProducts([]);
       }
@@ -64,12 +65,13 @@ export function ProductDetailsContent({
   }, []);
 
   const product = useMemo(
-    () => localProducts.find((item) => item.id === initialProduct.id) ?? initialProduct,
+    () => localProducts.find((item) => item.id === initialProduct.id) ?? normalizeProduct(initialProduct),
     [initialProduct, localProducts]
   );
   const related = useMemo(() => {
+    const normalizedRelated = normalizeProducts(relatedProducts);
     const localIds = new Set(localProducts.map((item) => item.id));
-    return [...localProducts, ...relatedProducts.filter((item) => !localIds.has(item.id))];
+    return [...localProducts, ...normalizedRelated.filter((item) => !localIds.has(item.id))];
   }, [localProducts, relatedProducts]);
   const specs = locale === 'ar' ? product.specifications_ar : product.specifications_en;
 
@@ -119,14 +121,31 @@ export function ProductDetailsContent({
         </dl>
         <section className="mt-6">
           <h2 className="text-lg font-black">{labels.specifications}</h2>
-          <ul className="mt-3 grid gap-2">
-            {specs.map((spec) => (
-              <li className="rounded-xl border border-white/10 bg-black/40 px-4 py-3 font-semibold text-white/82" key={spec}>
-                {spec}
-              </li>
-            ))}
-          </ul>
+          {specs.length ? (
+            <ul className="mt-3 grid gap-2">
+              {specs.map((spec) => (
+                <li className="rounded-xl border border-white/10 bg-black/40 px-4 py-3 font-semibold text-white/82" key={spec}>
+                  {spec}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 rounded-xl border border-white/10 bg-black/40 px-4 py-3 font-semibold text-white/60">-</p>
+          )}
         </section>
+        {product.accessories.length ? (
+          <section className="mt-6">
+            <h2 className="text-lg font-black">{locale === 'ar' ? 'اكسسوارات مقترحة' : 'Accessory suggestions'}</h2>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {product.accessories.map((item) => (
+                <div className="rounded-xl border border-white/10 bg-black/40 px-4 py-3 font-semibold text-white/82" key={item.id}>
+                  <span>{locale === 'ar' ? item.name_ar : item.name_en}</span>
+                  <span className="mt-1 block text-brand-neon">{formatPrice(item.price_bhd, locale)}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : null}
         <div className="mt-8 grid grid-cols-2 gap-2">
           <WhatsAppButton product={product} locale={locale} settings={settings} label={labels.orderWhatsapp} large />
           <ProductShareButton product={product} locale={locale} />

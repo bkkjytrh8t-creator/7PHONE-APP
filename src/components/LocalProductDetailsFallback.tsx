@@ -3,6 +3,7 @@
 import {useEffect, useMemo, useState} from 'react';
 import Link from 'next/link';
 import {brandName, categoryName, formatPrice, productDescription, productName} from '@/lib/format';
+import {normalizeProducts, productMatchesRouteKey} from '@/lib/productNormalize';
 import type {Locale, Product, StoreSettings} from '@/lib/types';
 import {ProductExperience} from './ProductExperience';
 import {ProductShareButton} from './ProductShareButton';
@@ -12,24 +13,24 @@ import {WhatsAppButton} from './WhatsAppButton';
 const localProductsKey = '7phone-local-products';
 
 export function LocalProductDetailsFallback({
-  productId,
+  routeKey,
   locale,
   settings
 }: {
-  productId: number;
+  routeKey: string;
   locale: Locale;
   settings: StoreSettings;
 }) {
   const [products, setProducts] = useState<Product[] | null>(null);
   const product = useMemo(
-    () => products?.find((item) => item.id === productId) ?? null,
-    [productId, products]
+    () => products?.find((item) => productMatchesRouteKey(item, routeKey)) ?? null,
+    [routeKey, products]
   );
 
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem(localProductsKey);
-      setProducts(saved ? (JSON.parse(saved) as Product[]) : []);
+      setProducts(saved ? normalizeProducts(JSON.parse(saved) as Product[]) : []);
     } catch {
       setProducts([]);
     }

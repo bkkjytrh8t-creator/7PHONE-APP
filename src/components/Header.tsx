@@ -30,12 +30,6 @@ export async function Header({locale, settings}: {locale: Locale; settings: Stor
             {t('call')}
           </a>
           <Link
-            href={`/${locale}/admin/products`}
-            className="hidden h-9 items-center rounded-lg border border-white/12 px-3 text-xs font-bold text-white/76 hover:border-brand-neon hover:text-white sm:inline-flex"
-          >
-            Admin
-          </Link>
-          <Link
             href={`/${otherLocale}`}
             className="inline-flex h-9 items-center rounded-lg border border-brand-neon/80 px-3 text-xs font-black text-brand-neon hover:bg-brand-neon hover:text-white"
           >

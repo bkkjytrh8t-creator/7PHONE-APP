@@ -76,7 +76,9 @@ export function AdminSettingsManager({
         whatsappTemplate: 'قالب رسالة طلب واتساب',
         save: 'حفظ مؤقت',
         saved: 'تم الحفظ مؤقتاً في هذا المتصفح.',
-        temporary: 'هذه الإعدادات مؤقتة داخل لوحة الإدارة ولا تغيّر الموقع العام حتى يتم ربط قاعدة بيانات.'
+        temporary: 'هذه الإعدادات تحفظ دائماً عند توفر Supabase، وتتحول لمؤقتة فقط إذا لم تكن البيئة مهيأة.',
+        permanentSaved: 'تم الحفظ دائماً في Supabase.',
+        permanentUnavailable: 'Supabase غير مهيأ. تم الحفظ مؤقتاً في هذا المتصفح فقط.'
       }
     : {
         title: 'Store settings',
@@ -90,7 +92,9 @@ export function AdminSettingsManager({
         whatsappTemplate: 'WhatsApp order message template',
         save: 'Save temporary',
         saved: 'Saved temporarily in this browser.',
-        temporary: 'These settings are temporary inside admin and do not change the public site until a database is connected.'
+        temporary: 'Settings save permanently when Supabase is configured, and fall back to temporary browser storage only when it is not.',
+        permanentSaved: 'Saved permanently to Supabase.',
+        permanentUnavailable: 'Supabase is not configured. Saved temporarily in this browser only.'
       };
   const [logo, setLogo] = useState(settings.logoUrl ?? '');
   const [banner, setBanner] = useState(settings.bannerUrl ?? '');
@@ -153,11 +157,61 @@ export function AdminSettingsManager({
     }
   }
 
-  function persistLogo() {
+  function localSettingsPayload(nextLogo = logo, nextBanner = banner) {
+    return {
+      ...settings,
+      logoUrl: nextLogo || null,
+      bannerUrl: nextBanner || null,
+      benefitPayQr,
+      iban,
+      paymentOptions,
+      deliveryOptions,
+      whatsappTemplate
+    };
+  }
+
+  async function saveSettings(nextLogo = logo, nextBanner = banner) {
+    try {
+      const response = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(localSettingsPayload(nextLogo, nextBanner))
+      });
+      const result = (await response.json().catch(() => null)) as {
+        ok?: boolean;
+        settings?: StoreSettings;
+        message?: string;
+      } | null;
+
+      if (response.ok && result?.ok && result.settings) {
+        setLogo(result.settings.logoUrl || '');
+        setBanner(result.settings.bannerUrl || '');
+        saveLocalImage(localLogoKey, '7phone-logo-updated', result.settings.logoUrl || '');
+        saveLocalImage(localBannerKey, '7phone-banner-updated', result.settings.bannerUrl || '');
+        setSettingsStatus(copy.permanentSaved);
+        return true;
+      }
+
+      if (response.status !== 503) {
+        setSettingsStatus(result?.message || copy.permanentUnavailable);
+      } else {
+        setSettingsStatus(copy.permanentUnavailable);
+      }
+    } catch {
+      setSettingsStatus(copy.permanentUnavailable);
+    }
+
+    return false;
+  }
+
+  async function persistLogo() {
     const isSaved = saveLocalImage(localLogoKey, '7phone-logo-updated', logo);
+    const isPermanent = await saveSettings(logo, banner);
 
     setLogoStatus(
-      isSaved
+      isPermanent
+        ? copy.permanentSaved
+        : isSaved
         ? locale === 'ar'
           ? 'تم حفظ اللوغو بنجاح. افتح الصفحة الرئيسية وستراه في الأعلى.'
           : 'Logo saved. Open the home page to see it in the header.'
@@ -167,11 +221,14 @@ export function AdminSettingsManager({
     );
   }
 
-  function persistBanner() {
+  async function persistBanner() {
     const isSaved = saveLocalImage(localBannerKey, '7phone-banner-updated', banner);
+    const isPermanent = await saveSettings(logo, banner);
 
     setBannerStatus(
-      isSaved
+      isPermanent
+        ? copy.permanentSaved
+        : isSaved
         ? locale === 'ar'
           ? 'تم حفظ البنر بنجاح. سيظهر أعلى الموقع.'
           : 'Banner saved. It will appear at the top of the site.'
@@ -181,11 +238,14 @@ export function AdminSettingsManager({
     );
   }
 
-  function removeLogo() {
+  async function removeLogo() {
     setLogo('');
     const isSaved = saveLocalImage(localLogoKey, '7phone-logo-updated', '');
+    const isPermanent = await saveSettings('', banner);
     setLogoStatus(
-      isSaved
+      isPermanent
+        ? copy.permanentSaved
+        : isSaved
         ? locale === 'ar'
           ? 'تم حذف اللوغو.'
           : 'Logo removed.'
@@ -195,11 +255,14 @@ export function AdminSettingsManager({
     );
   }
 
-  function removeBanner() {
+  async function removeBanner() {
     setBanner('');
     const isSaved = saveLocalImage(localBannerKey, '7phone-banner-updated', '');
+    const isPermanent = await saveSettings(logo, '');
     setBannerStatus(
-      isSaved
+      isPermanent
+        ? copy.permanentSaved
+        : isSaved
         ? locale === 'ar'
           ? 'تم حذف البنر.'
           : 'Banner removed.'
@@ -223,13 +286,14 @@ export function AdminSettingsManager({
     </div>
   );
 
-  function saveTemporarySettings() {
+  async function saveTemporarySettings() {
     window.localStorage.setItem('7phone-admin-payment-options', paymentOptions);
     window.localStorage.setItem('7phone-admin-delivery-options', deliveryOptions);
     window.localStorage.setItem('7phone-admin-whatsapp-template', whatsappTemplate);
     window.localStorage.setItem('7phone-admin-iban', iban);
     window.localStorage.setItem('7phone-admin-benefitpay-qr', benefitPayQr);
-    setSettingsStatus(copy.saved);
+    const isPermanent = await saveSettings();
+    setSettingsStatus(isPermanent ? copy.permanentSaved : copy.saved);
   }
 
   return (
