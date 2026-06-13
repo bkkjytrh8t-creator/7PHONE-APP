@@ -116,7 +116,7 @@ export function CategoryBar({
     }`;
 
   return (
-    <div className="sticky top-[99px] z-30 border-b border-zinc-200 bg-white/96 px-4 py-4 backdrop-blur">
+    <div className="relative border-b border-zinc-200 bg-white px-4 py-4">
       <div className="hide-scrollbar mx-auto flex max-w-7xl gap-3 overflow-x-auto">
         <button
           className={itemClass(activeCategory === 'all')}

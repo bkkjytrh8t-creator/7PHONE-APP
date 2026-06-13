@@ -4,6 +4,7 @@ import {primaryProductImage, productRouteKey} from '@/lib/productNormalize';
 import type {Locale, Product, StoreSettings} from '@/lib/types';
 import {FallbackImage} from './FallbackImage';
 import {ProductLikeButton} from './ProductLikeButton';
+import {ProductQuickViewButton} from './ProductQuickViewButton';
 import {ProductStats} from './ProductStats';
 import {WhatsAppButton} from './WhatsAppButton';
 
@@ -71,9 +72,13 @@ export function ProductCard({
         </div>
       </Link>
       <div className="grid grid-cols-2 gap-2 px-3.5 pb-3.5">
-        <Link className="grid h-10 place-items-center rounded-xl border border-white/10 text-xs font-black text-white hover:border-brand-neon" href={productHref}>
-          عرض سريع
-        </Link>
+        <ProductQuickViewButton
+          product={product}
+          locale={locale}
+          settings={settings}
+          label={locale === 'ar' ? 'عرض سريع' : 'Quick View'}
+          orderLabel={orderLabel}
+        />
         {product.stock_status === 'available' ? (
           <WhatsAppButton product={product} locale={locale} settings={settings} label={orderLabel} />
         ) : (
