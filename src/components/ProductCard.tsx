@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import {brandName, categoryName, formatPrice, productName} from '@/lib/format';
-import {primaryProductImage, productRouteKey} from '@/lib/productNormalize';
+import {primaryProductImage} from '@/lib/productNormalize';
 import type {Locale, Product, StoreSettings} from '@/lib/types';
 import {FallbackImage} from './FallbackImage';
 import {ProductLikeButton} from './ProductLikeButton';
@@ -21,7 +21,7 @@ export function ProductCard({
 }) {
   const name = productName(product, locale);
   const image = primaryProductImage(product);
-  const productHref = `/${locale}/product/${productRouteKey(product)}`;
+  const productHref = `/${locale}/product/${product.id}`;
 
   return (
     <article className="group overflow-hidden rounded-2xl border border-white/10 bg-white/[0.06] shadow-sm transition hover:-translate-y-0.5 hover:border-brand-neon/60 hover:shadow-neon">

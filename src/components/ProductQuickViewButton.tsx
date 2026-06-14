@@ -4,7 +4,7 @@ import {useEffect, useState} from 'react';
 import {createPortal} from 'react-dom';
 import Link from 'next/link';
 import {brandName, categoryName, formatPrice, productName} from '@/lib/format';
-import {primaryProductImage, productRouteKey} from '@/lib/productNormalize';
+import {primaryProductImage} from '@/lib/productNormalize';
 import type {Locale, Product, StoreSettings} from '@/lib/types';
 import {FallbackImage} from './FallbackImage';
 import {WhatsAppButton} from './WhatsAppButton';
@@ -26,7 +26,7 @@ export function ProductQuickViewButton({
   const [isOpen, setIsOpen] = useState(false);
   const name = productName(product, locale);
   const image = primaryProductImage(product);
-  const productHref = `/${locale}/product/${productRouteKey(product)}`;
+  const productHref = `/${locale}/product/${product.id}`;
   const specs = locale === 'ar' ? product.specifications_ar : product.specifications_en;
 
   useEffect(() => {
