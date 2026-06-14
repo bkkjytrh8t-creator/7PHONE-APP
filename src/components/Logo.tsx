@@ -1,25 +1,6 @@
-'use client';
-
-import {useEffect, useState} from 'react';
 import {FallbackImage} from './FallbackImage';
 
-const localLogoKey = '7phone-store-logo';
-
 export function Logo({logoUrl}: {logoUrl?: string | null}) {
-  const [currentLogo, setCurrentLogo] = useState(logoUrl ?? '');
-
-  useEffect(() => {
-    const readLogo = () => setCurrentLogo(window.localStorage.getItem(localLogoKey) || logoUrl || '');
-
-    readLogo();
-    window.addEventListener('7phone-logo-updated', readLogo);
-    window.addEventListener('storage', readLogo);
-    return () => {
-      window.removeEventListener('7phone-logo-updated', readLogo);
-      window.removeEventListener('storage', readLogo);
-    };
-  }, [logoUrl]);
-
   const fallbackLogo = (
     <svg aria-hidden viewBox="0 0 48 48" className="h-12 w-12">
       <rect width="48" height="48" rx="16" fill="#ffffff" />
@@ -48,7 +29,7 @@ export function Logo({logoUrl}: {logoUrl?: string | null}) {
         <FallbackImage
           alt="7Phone logo"
           className="h-full w-full rounded-full object-contain"
-          src={currentLogo}
+          src={logoUrl ?? ''}
         >
           {fallbackLogo}
         </FallbackImage>

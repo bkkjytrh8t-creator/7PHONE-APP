@@ -4,24 +4,6 @@ import {useEffect, useState} from 'react';
 import type {Locale, StoreSettings} from '@/lib/types';
 import {FallbackImage} from './FallbackImage';
 
-const localLogoKey = '7phone-store-logo';
-const localBannerKey = '7phone-store-banner';
-
-function saveLocalImage(key: string, eventName: string, image: string) {
-  try {
-    if (image) {
-      window.localStorage.setItem(key, image);
-    } else {
-      window.localStorage.removeItem(key);
-    }
-
-    window.dispatchEvent(new Event(eventName));
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 function resizeImage(file: File, maxWidth: number, maxHeight: number) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -74,11 +56,11 @@ export function AdminSettingsManager({
         paymentOptions: 'خيارات الدفع',
         deliveryOptions: 'خيارات التوصيل',
         whatsappTemplate: 'قالب رسالة طلب واتساب',
-        save: 'حفظ مؤقت',
-        saved: 'تم الحفظ مؤقتاً في هذا المتصفح.',
-        temporary: 'هذه الإعدادات تحفظ دائماً عند توفر Supabase، وتتحول لمؤقتة فقط إذا لم تكن البيئة مهيأة.',
+        save: 'حفظ الإعدادات',
+        saved: 'تم حفظ الإعدادات في Supabase.',
+        temporary: 'يتم حفظ إعدادات المتجر واللوغو في Supabase لتظهر على الموقع العام.',
         permanentSaved: 'تم الحفظ دائماً في Supabase.',
-        permanentUnavailable: 'Supabase غير مهيأ. تم الحفظ مؤقتاً في هذا المتصفح فقط.'
+        permanentUnavailable: 'تعذر الحفظ في Supabase.'
       }
     : {
         title: 'Store settings',
@@ -90,11 +72,11 @@ export function AdminSettingsManager({
         paymentOptions: 'Payment options',
         deliveryOptions: 'Delivery options',
         whatsappTemplate: 'WhatsApp order message template',
-        save: 'Save temporary',
-        saved: 'Saved temporarily in this browser.',
-        temporary: 'Settings save permanently when Supabase is configured, and fall back to temporary browser storage only when it is not.',
+        save: 'Save settings',
+        saved: 'Saved to Supabase.',
+        temporary: 'Store settings and logo are saved in Supabase and shown on the public website.',
         permanentSaved: 'Saved permanently to Supabase.',
-        permanentUnavailable: 'Supabase is not configured. Saved temporarily in this browser only.'
+        permanentUnavailable: 'Could not save to Supabase.'
       };
   const [logo, setLogo] = useState(settings.logoUrl ?? '');
   const [banner, setBanner] = useState(settings.bannerUrl ?? '');
@@ -109,13 +91,10 @@ export function AdminSettingsManager({
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    setLogo(window.localStorage.getItem(localLogoKey) || settings.logoUrl || '');
-    setBanner(window.localStorage.getItem(localBannerKey) || settings.bannerUrl || '');
-    setPaymentOptions(window.localStorage.getItem('7phone-admin-payment-options') || paymentOptions);
-    setDeliveryOptions(window.localStorage.getItem('7phone-admin-delivery-options') || deliveryOptions);
-    setWhatsappTemplate(window.localStorage.getItem('7phone-admin-whatsapp-template') || whatsappTemplate);
-    setIban(window.localStorage.getItem('7phone-admin-iban') || settings.iban);
-    setBenefitPayQr(window.localStorage.getItem('7phone-admin-benefitpay-qr') || settings.benefitPayQr);
+    setLogo(settings.logoUrl || '');
+    setBanner(settings.bannerUrl || '');
+    setIban(settings.iban);
+    setBenefitPayQr(settings.benefitPayQr);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings.bannerUrl, settings.logoUrl]);
 
@@ -186,8 +165,6 @@ export function AdminSettingsManager({
       if (response.ok && result?.ok && result.settings) {
         setLogo(result.settings.logoUrl || '');
         setBanner(result.settings.bannerUrl || '');
-        saveLocalImage(localLogoKey, '7phone-logo-updated', result.settings.logoUrl || '');
-        saveLocalImage(localBannerKey, '7phone-banner-updated', result.settings.bannerUrl || '');
         setSettingsStatus(copy.permanentSaved);
         return true;
       }
@@ -205,50 +182,35 @@ export function AdminSettingsManager({
   }
 
   async function persistLogo() {
-    const isSaved = saveLocalImage(localLogoKey, '7phone-logo-updated', logo);
     const isPermanent = await saveSettings(logo, banner);
 
     setLogoStatus(
       isPermanent
         ? copy.permanentSaved
-        : isSaved
-        ? locale === 'ar'
-          ? 'تم حفظ اللوغو بنجاح. افتح الصفحة الرئيسية وستراه في الأعلى.'
-          : 'Logo saved. Open the home page to see it in the header.'
         : locale === 'ar'
-          ? 'لم يتم الحفظ. جرّب صورة أصغر.'
-          : 'Logo was not saved. Try a smaller image.'
+          ? 'لم يتم حفظ اللوغو في Supabase.'
+          : 'Logo was not saved to Supabase.'
     );
   }
 
   async function persistBanner() {
-    const isSaved = saveLocalImage(localBannerKey, '7phone-banner-updated', banner);
     const isPermanent = await saveSettings(logo, banner);
 
     setBannerStatus(
       isPermanent
         ? copy.permanentSaved
-        : isSaved
-        ? locale === 'ar'
-          ? 'تم حفظ البنر بنجاح. سيظهر أعلى الموقع.'
-          : 'Banner saved. It will appear at the top of the site.'
         : locale === 'ar'
-          ? 'لم يتم حفظ البنر. جرّب صورة أصغر.'
-          : 'Banner was not saved. Try a smaller image.'
+          ? 'لم يتم حفظ البنر في Supabase.'
+          : 'Banner was not saved to Supabase.'
     );
   }
 
   async function removeLogo() {
     setLogo('');
-    const isSaved = saveLocalImage(localLogoKey, '7phone-logo-updated', '');
     const isPermanent = await saveSettings('', banner);
     setLogoStatus(
       isPermanent
         ? copy.permanentSaved
-        : isSaved
-        ? locale === 'ar'
-          ? 'تم حذف اللوغو.'
-          : 'Logo removed.'
         : locale === 'ar'
           ? 'تعذر حذف اللوغو.'
           : 'Could not remove the logo.'
@@ -257,15 +219,10 @@ export function AdminSettingsManager({
 
   async function removeBanner() {
     setBanner('');
-    const isSaved = saveLocalImage(localBannerKey, '7phone-banner-updated', '');
     const isPermanent = await saveSettings(logo, '');
     setBannerStatus(
       isPermanent
         ? copy.permanentSaved
-        : isSaved
-        ? locale === 'ar'
-          ? 'تم حذف البنر.'
-          : 'Banner removed.'
         : locale === 'ar'
           ? 'تعذر حذف البنر.'
           : 'Could not remove the banner.'
@@ -286,14 +243,9 @@ export function AdminSettingsManager({
     </div>
   );
 
-  async function saveTemporarySettings() {
-    window.localStorage.setItem('7phone-admin-payment-options', paymentOptions);
-    window.localStorage.setItem('7phone-admin-delivery-options', deliveryOptions);
-    window.localStorage.setItem('7phone-admin-whatsapp-template', whatsappTemplate);
-    window.localStorage.setItem('7phone-admin-iban', iban);
-    window.localStorage.setItem('7phone-admin-benefitpay-qr', benefitPayQr);
+  async function saveStoreSettings() {
     const isPermanent = await saveSettings();
-    setSettingsStatus(isPermanent ? copy.permanentSaved : copy.saved);
+    setSettingsStatus(isPermanent ? copy.saved : copy.permanentUnavailable);
   }
 
   return (
@@ -346,8 +298,8 @@ export function AdminSettingsManager({
             </div>
             <p className="text-xs font-semibold leading-5 text-zinc-500">
               {locale === 'ar'
-                ? 'في وضع المعاينة يتم حفظ اللوغو في نفس المتصفح. عند ربط Supabase يمكن حفظه لكل الأجهزة.'
-                : 'In preview mode the logo is saved in this browser. Connect Supabase to save it for all devices.'}
+                ? 'يتم رفع اللوغو إلى Supabase Storage وحفظ رابطه في إعدادات المتجر.'
+                : 'The logo is uploaded to Supabase Storage and its URL is saved in store settings.'}
             </p>
             {logoStatus ? (
               <p className="rounded-md bg-white/5 px-4 py-3 text-sm font-bold text-zinc-200" role="status">
@@ -449,7 +401,7 @@ export function AdminSettingsManager({
           {copy.whatsappTemplate}
           <textarea className="admin-textarea" onChange={(event) => setWhatsappTemplate(event.target.value)} value={whatsappTemplate} />
         </label>
-        <button className="h-11 w-fit rounded-md bg-brand-neon px-5 text-sm font-black text-white" onClick={saveTemporarySettings} type="button">
+        <button className="h-11 w-fit rounded-md bg-brand-neon px-5 text-sm font-black text-white" onClick={saveStoreSettings} type="button">
           {copy.save}
         </button>
         {settingsStatus ? <p className="rounded-md bg-brand-neon/10 px-4 py-3 text-sm font-bold text-pink-100">{settingsStatus}</p> : null}

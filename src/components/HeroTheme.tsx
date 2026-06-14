@@ -1,9 +1,6 @@
 'use client';
 
-import {useEffect, useState} from 'react';
 import {Logo} from './Logo';
-
-const localBannerKey = '7phone-store-banner';
 
 export function HeroTheme({
   bannerUrl,
@@ -16,17 +13,7 @@ export function HeroTheme({
   title: string;
   subtitle: string;
 }) {
-  const [currentBanner, setCurrentBanner] = useState(bannerUrl ?? '');
-
-  useEffect(() => {
-    const readBanner = () => setCurrentBanner(window.localStorage.getItem(localBannerKey) || bannerUrl || '');
-
-    readBanner();
-    window.addEventListener('7phone-banner-updated', readBanner);
-    return () => window.removeEventListener('7phone-banner-updated', readBanner);
-  }, [bannerUrl]);
-
-  const backgroundImage = currentBanner || '/images/7phone-hero.png';
+  const backgroundImage = bannerUrl || '/images/7phone-hero.png';
 
   return (
     <section className="bg-[#101014] text-white">
