@@ -76,4 +76,7 @@ export type StoreSettings = {
   siteUrl: string;
   benefitPayQr: string;
   iban: string;
+  paymentOptions?: string;
+  deliveryOptions?: string;
+  whatsappTemplate?: string;
 };
