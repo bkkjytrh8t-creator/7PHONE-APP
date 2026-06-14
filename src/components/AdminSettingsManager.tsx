@@ -58,7 +58,7 @@ export function AdminSettingsManager({
         whatsappTemplate: 'قالب رسالة طلب واتساب',
         save: 'حفظ الإعدادات',
         saved: 'تم حفظ الإعدادات في Supabase.',
-        temporary: 'يتم حفظ إعدادات المتجر واللوغو في Supabase لتظهر على الموقع العام.',
+        storage: 'يتم حفظ إعدادات المتجر واللوغو في Supabase لتظهر على الموقع العام.',
         permanentSaved: 'تم الحفظ دائماً في Supabase.',
         permanentUnavailable: 'تعذر الحفظ في Supabase.'
       }
@@ -74,7 +74,7 @@ export function AdminSettingsManager({
         whatsappTemplate: 'WhatsApp order message template',
         save: 'Save settings',
         saved: 'Saved to Supabase.',
-        temporary: 'Store settings and logo are saved in Supabase and shown on the public website.',
+        storage: 'Store settings and logo are saved in Supabase and shown on the public website.',
         permanentSaved: 'Saved permanently to Supabase.',
         permanentUnavailable: 'Could not save to Supabase.'
       };
@@ -252,7 +252,7 @@ export function AdminSettingsManager({
     <div className="grid gap-5">
       <section className="rounded-lg border border-white/10 bg-zinc-950 p-5">
         <h2 className="text-2xl font-black text-white">{copy.title}</h2>
-        <p className="mt-2 text-sm font-semibold text-zinc-400">{copy.temporary}</p>
+        <p className="mt-2 text-sm font-semibold text-zinc-400">{copy.storage}</p>
 
         <div className="mt-6 grid gap-5 md:grid-cols-[220px_1fr]">
           <div className="grid h-44 place-items-center rounded-lg border border-white/10 bg-white/[0.03] p-4">

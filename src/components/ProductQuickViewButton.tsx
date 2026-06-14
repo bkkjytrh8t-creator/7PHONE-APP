@@ -6,6 +6,7 @@ import Link from 'next/link';
 import {brandName, categoryName, formatPrice, productName} from '@/lib/format';
 import {primaryProductImage} from '@/lib/productNormalize';
 import type {Locale, Product, StoreSettings} from '@/lib/types';
+import type {ReactNode} from 'react';
 import {FallbackImage} from './FallbackImage';
 import {WhatsAppButton} from './WhatsAppButton';
 
@@ -14,13 +15,17 @@ export function ProductQuickViewButton({
   locale,
   settings,
   label,
-  orderLabel
+  orderLabel,
+  children,
+  className
 }: {
   product: Product;
   locale: Locale;
   settings: StoreSettings;
   label: string;
   orderLabel: string;
+  children?: ReactNode;
+  className?: string;
 }) {
   const [isMounted, setIsMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -145,11 +150,12 @@ export function ProductQuickViewButton({
   return (
     <>
       <button
-        className="grid h-10 place-items-center rounded-xl border border-white/10 text-xs font-black text-white hover:border-brand-neon"
+        aria-label={label}
+        className={className ?? 'grid h-10 place-items-center rounded-xl border border-white/10 text-xs font-black text-white hover:border-brand-neon'}
         onClick={() => setIsOpen(true)}
         type="button"
       >
-        {label}
+        {children ?? label}
       </button>
       {isMounted && modal ? createPortal(modal, document.body) : null}
     </>

@@ -26,7 +26,14 @@ export function ProductCard({
   return (
     <article className="group overflow-hidden rounded-2xl border border-white/10 bg-white/[0.06] shadow-sm transition hover:-translate-y-0.5 hover:border-brand-neon/60 hover:shadow-neon">
       <div className="relative">
-        <Link href={productHref} className="block">
+        <ProductQuickViewButton
+          product={product}
+          locale={locale}
+          settings={settings}
+          label={locale === 'ar' ? 'عرض سريع' : 'Quick View'}
+          orderLabel={orderLabel}
+          className="block w-full text-start"
+        >
           <div className="relative grid aspect-square place-items-center bg-[#111115] p-3">
           <FallbackImage alt={name} className="h-full w-full rounded-xl object-cover" src={image}>
             <div className="grid h-full w-full place-items-center rounded-xl bg-black text-center text-xs font-bold leading-5 text-white">
@@ -45,7 +52,7 @@ export function ProductCard({
             {product.stock_status === 'available' ? 'متوفر الآن' : 'نفذ من المخزون'}
           </span>
           </div>
-        </Link>
+        </ProductQuickViewButton>
         <ProductLikeButton
           productId={product.id}
           initialLikes={product.likes}

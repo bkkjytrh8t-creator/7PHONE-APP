@@ -8,7 +8,7 @@ const labels = {
   en: {
     title: '7Phone Admin',
     subtitle: 'Controlled store management',
-    temporary: 'Temporary secure mode: data edits are saved in this browser until Supabase or another database is connected.',
+    storage: 'Supabase is connected: products, images, logo, and store settings save permanently.',
     dashboard: 'Dashboard',
     products: 'Products',
     categories: 'Categories',
@@ -17,7 +17,7 @@ const labels = {
   ar: {
     title: 'لوحة 7Phone',
     subtitle: 'إدارة المتجر بشكل محكم',
-    temporary: 'وضع حماية مؤقت: تعديلات البيانات تحفظ في هذا المتصفح إلى أن يتم ربط Supabase أو قاعدة بيانات.',
+    storage: 'Supabase متصل: المنتجات والصور واللوغو وإعدادات المتجر تحفظ دائماً.',
     dashboard: 'الرئيسية',
     products: 'المنتجات',
     categories: 'التصنيفات',
@@ -86,7 +86,7 @@ export async function AdminShell({
           </nav>
         </header>
         <div className="rounded-lg border border-brand-neon/35 bg-brand-neon/10 px-4 py-3 text-sm font-bold text-pink-100">
-          {copy.temporary}
+          {copy.storage}
         </div>
         {children}
       </div>

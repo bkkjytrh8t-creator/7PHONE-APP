@@ -16,7 +16,7 @@ const content = {
     active: 'Active products',
     requests: 'WhatsApp requests',
     revenue: 'Listed value',
-    temporary: 'Temporary tools are ready for controlled editing. Connect Supabase for permanent multi-device saving.'
+    storage: 'Supabase permanent storage is active for store data and assets.'
   },
   ar: {
     overview: 'لوحة التحكم',
@@ -32,7 +32,7 @@ const content = {
     active: 'منتجات ظاهرة',
     requests: 'طلبات واتساب',
     revenue: 'قيمة المنتجات',
-    temporary: 'الأدوات المؤقتة جاهزة للتعديل المنظم. اربط Supabase للحفظ الدائم على كل الأجهزة.'
+    storage: 'تخزين Supabase الدائم مفعل لبيانات المتجر والملفات.'
   }
 };
 
@@ -66,7 +66,7 @@ export function AdminDashboard({
         <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
             <h2 className="text-2xl font-black text-white">{copy.overview}</h2>
-            <p className="mt-1 text-sm font-semibold text-zinc-400">{copy.temporary}</p>
+            <p className="mt-1 text-sm font-semibold text-zinc-400">{copy.storage}</p>
           </div>
           <a className="text-sm font-black text-brand-neon" href={`https://wa.me/${settings.whatsapp}`}>
             WhatsApp {settings.whatsapp}
