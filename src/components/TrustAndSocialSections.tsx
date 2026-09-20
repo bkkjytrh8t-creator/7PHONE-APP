@@ -18,14 +18,6 @@ function SocialPlatformIcon({name}: {name: SocialIconName}) {
   return <svg aria-hidden className="h-6 w-6" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 3c3 0 4.8 2.3 4.8 5.2 0 1.6.5 2.8 2.2 3.7-.4 1-1.2 1.5-2.3 1.7-.2 1.8-1.7 2.2-3.2 2.3-.4.7-.8 1.6-1.5 2.7-.7-1.1-1.1-2-1.5-2.7-1.5-.1-3-.5-3.2-2.3-1.1-.2-1.9-.7-2.3-1.7 1.7-.9 2.2-2.1 2.2-3.7C7.2 5.3 9 3 12 3Z"/></svg>;
 }
 
-function socialIconStyle(icon?: SocialIconName) {
-  if (icon === 'instagram') return 'bg-[#fff2f7] text-[#d62976]';
-  if (icon === 'youtube') return 'bg-[#fff1f1] text-[#ff0000]';
-  if (icon === 'snapchat') return 'bg-[#fffc00] text-black';
-  if (icon === 'tiktok') return 'bg-[#f5f5f5] text-black';
-  return 'bg-[#f5f5f7] text-[#111111]';
-}
-
 function BrandMark({kind}: {kind: 'seven' | 'i7'}) {
   return kind === 'seven'
     ? <img alt="7Phone" className="h-11 w-11 rounded-xl object-contain" src="/images/7phone-logo.svg" />
@@ -84,10 +76,10 @@ export function TrustAndSocialSections({locale}: {locale: Locale}) {
         </div>
       </section>
 
-      <section aria-labelledby="follow-seven-title" className="mx-auto mt-16 max-w-7xl">
-        <div className="mb-6 text-center"><p className="text-[11px] font-black uppercase tracking-[0.2em] text-brand-neon">STAY CONNECTED</p><h2 className="mt-2 text-2xl font-black tracking-tight md:text-3xl" id="follow-seven-title">{isArabic ? 'تابعنا على جميع المنصات' : 'Follow Us Everywhere'}</h2></div>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {socialCards[locale].map((social) => <a aria-label={`${social.platform} ${social.username}`} className="group flex min-h-[76px] items-center gap-3 rounded-2xl border border-[#eeeeee] bg-white px-3.5 py-3 transition duration-200 hover:-translate-y-0.5 hover:border-brand-neon/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-neon/40 md:min-h-[82px] md:px-4" href={social.href} key={`${social.platform}-${social.username}`} rel="noreferrer" target={social.platform === 'Website' ? undefined : '_blank'}><span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl md:h-11 md:w-11 ${socialIconStyle(social.icon)}`}>{social.brand ? <BrandMark kind={social.brand} /> : <SocialPlatformIcon name={social.icon!} />}</span><span className="min-w-0 flex-1"><strong className="block truncate text-xs font-black md:text-sm">{social.platform}</strong><span className="mt-0.5 block truncate text-[11px] font-semibold text-[#777777] md:text-xs" dir="ltr">{social.username}</span></span><span aria-hidden className="shrink-0 text-sm text-[#999999] transition-colors group-hover:text-brand-neon">{isArabic ? '←' : '→'}</span></a>)}
+      <section aria-labelledby="follow-seven-title" className="mx-auto mt-20 max-w-3xl px-1 sm:px-6">
+        <div className="mb-8 text-center"><p className="text-[10px] font-black uppercase tracking-[0.24em] text-brand-neon">STAY CONNECTED</p><h2 className="mt-2.5 text-2xl font-black tracking-tight md:text-[30px]" id="follow-seven-title">{isArabic ? 'تابعنا على جميع المنصات' : 'Follow Us Everywhere'}</h2></div>
+        <div className="divide-y divide-[#e8e8e8]">
+          {socialCards[locale].map((social) => <a aria-label={`${social.platform} ${social.username}`} className="group flex min-h-[72px] items-center gap-4 px-1 py-3 text-[#111111] transition-colors duration-200 hover:bg-black/[.025] focus-visible:bg-black/[.025] focus-visible:outline-none sm:min-h-[76px] sm:px-4" href={social.href} key={`${social.platform}-${social.username}`} rel="noreferrer" target={social.platform === 'Website' ? undefined : '_blank'}><span className="grid h-7 w-7 shrink-0 place-items-center text-black">{social.brand ? <img alt="7Phone" className="h-6 w-6 object-contain brightness-0" src="/images/7phone-logo.svg" /> : <SocialPlatformIcon name={social.icon!} />}</span><span className="min-w-0 flex-1"><strong className="block truncate text-sm font-semibold md:text-[15px]">{social.platform}</strong><span className="mt-0.5 block truncate text-xs font-medium text-[#777777]" dir="ltr">{social.username}</span></span><span aria-hidden className={`shrink-0 text-base font-light text-black transition duration-200 group-hover:text-brand-neon ${isArabic ? 'group-hover:-translate-x-0.5' : 'group-hover:translate-x-0.5'}`}>{isArabic ? '←' : '→'}</span></a>)}
         </div>
         <div aria-label={isArabic ? 'إحصائيات الثقة' : 'Trust statistics'} className="mt-4 grid overflow-hidden rounded-[20px] border border-[#ececec] bg-white shadow-[0_8px_30px_rgba(0,0,0,0.05)] sm:grid-cols-2 lg:grid-cols-5">
           {trustStats[locale].map((stat) => <div className="flex min-h-20 items-center justify-center border-b border-[#ececec] px-4 py-4 text-center text-sm font-black last:border-b-0 sm:border-e lg:border-b-0" key={stat}>{stat}</div>)}
