@@ -3,6 +3,7 @@ import {Footer} from '@/components/Footer';
 import {Header} from '@/components/Header';
 import {Hero} from '@/components/Hero';
 import {SearchCatalog} from '@/components/SearchCatalog';
+import {TrustAndSocialSections} from '@/components/TrustAndSocialSections';
 import {getCategories, getProducts, getSettings} from '@/lib/data';
 import type {Locale} from '@/lib/types';
 
@@ -34,6 +35,7 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
           bestSellers: t('bestSellers')
         }}
       />
+      <TrustAndSocialSections locale={locale} />
       <Footer settings={settings} />
     </>
   );
