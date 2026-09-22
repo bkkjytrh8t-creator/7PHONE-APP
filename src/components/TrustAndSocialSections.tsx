@@ -47,16 +47,14 @@ const socialCards = {
     {platform: 'i7 Service', username: '@i7.bh', description: 'صيانة الهواتف قبل وبعد الإصلاح ونصائح فنية.', href: 'https://instagram.com/i7.bh', icon: 'instagram' as const},
     {platform: 'YouTube', username: '@7phone7', description: 'مراجعات وتجارب عملية للهواتف والأجهزة الذكية.', href: 'https://youtube.com/@7phone7', icon: 'youtube' as const},
     {platform: 'TikTok', username: '@7phone', description: 'فيديوهات قصيرة عن أحدث الأجهزة والعروض.', href: 'https://tiktok.com/@7phone', icon: 'tiktok' as const},
-    {platform: 'Snapchat', username: 'seven.bh', description: 'تغطيات يومية وعروض فورية.', href: 'https://snapchat.com/add/seven.bh', icon: 'snapchat' as const},
-    {platform: 'Website', username: '7phone.app', description: 'تصفح جميع المنتجات والعروض الحصرية.', href: 'https://7phone.app', brand: 'seven' as const}
+    {platform: 'Snapchat', username: 'seven.bh', description: 'تغطيات يومية وعروض فورية.', href: 'https://snapchat.com/add/seven.bh', icon: 'snapchat' as const}
   ],
   en: [
     {platform: 'Instagram', username: '@7phone', description: 'Latest offers, new devices, and daily announcements.', href: 'https://instagram.com/7phone', icon: 'instagram' as const},
     {platform: 'i7 Service', username: '@i7.bh', description: 'Phone repairs, before-and-after results, and technical advice.', href: 'https://instagram.com/i7.bh', icon: 'instagram' as const},
     {platform: 'YouTube', username: '@7phone7', description: 'Hands-on reviews of phones and smart devices.', href: 'https://youtube.com/@7phone7', icon: 'youtube' as const},
     {platform: 'TikTok', username: '@7phone', description: 'Short videos featuring the latest devices and offers.', href: 'https://tiktok.com/@7phone', icon: 'tiktok' as const},
-    {platform: 'Snapchat', username: 'seven.bh', description: 'Daily coverage and instant offers.', href: 'https://snapchat.com/add/seven.bh', icon: 'snapchat' as const},
-    {platform: 'Website', username: '7phone.app', description: 'Browse every product and exclusive offer.', href: 'https://7phone.app', brand: 'seven' as const}
+    {platform: 'Snapchat', username: 'seven.bh', description: 'Daily coverage and instant offers.', href: 'https://snapchat.com/add/seven.bh', icon: 'snapchat' as const}
   ]
 };
 
@@ -79,7 +77,7 @@ export function TrustAndSocialSections({locale}: {locale: Locale}) {
       <section aria-labelledby="follow-seven-title" className="mx-auto mt-20 max-w-3xl px-1 sm:px-6">
         <div className="mb-8 text-center"><p className="text-[10px] font-black uppercase tracking-[0.24em] text-brand-neon">STAY CONNECTED</p><h2 className="mt-2.5 text-2xl font-black tracking-tight md:text-[30px]" id="follow-seven-title">{isArabic ? 'تابعنا على جميع المنصات' : 'Follow Us Everywhere'}</h2></div>
         <div className="divide-y divide-[#e8e8e8]">
-          {socialCards[locale].map((social) => <a aria-label={`${social.platform} ${social.username}`} className="group flex min-h-[72px] items-center gap-4 px-1 py-3 text-[#111111] transition-colors duration-200 hover:bg-black/[.025] focus-visible:bg-black/[.025] focus-visible:outline-none sm:min-h-[76px] sm:px-4" href={social.href} key={`${social.platform}-${social.username}`} rel="noreferrer" target={social.platform === 'Website' ? undefined : '_blank'}><span className="grid h-7 w-7 shrink-0 place-items-center text-black">{social.brand ? <img alt="7Phone" className="h-6 w-6 object-contain brightness-0" src="/images/7phone-logo.svg" /> : <SocialPlatformIcon name={social.icon!} />}</span><span className="min-w-0 flex-1"><strong className="block truncate text-sm font-semibold md:text-[15px]">{social.platform}</strong><span className="mt-0.5 block truncate text-xs font-medium text-[#777777]" dir="ltr">{social.username}</span></span><span aria-hidden className={`shrink-0 text-base font-light text-black transition duration-200 group-hover:text-brand-neon ${isArabic ? 'group-hover:-translate-x-0.5' : 'group-hover:translate-x-0.5'}`}>{isArabic ? '←' : '→'}</span></a>)}
+          {socialCards[locale].map((social) => <a aria-label={`${social.platform} ${social.username}`} className="group flex min-h-[72px] items-center gap-4 px-1 py-3 text-[#111111] transition-colors duration-200 hover:bg-black/[.025] focus-visible:bg-black/[.025] focus-visible:outline-none sm:min-h-[76px] sm:px-4" href={social.href} key={`${social.platform}-${social.username}`} rel="noreferrer" target="_blank"><span className="grid h-7 w-7 shrink-0 place-items-center text-black"><SocialPlatformIcon name={social.icon} /></span><span className="min-w-0 flex-1"><strong className="block truncate text-sm font-semibold md:text-[15px]">{social.platform}</strong><span className="mt-0.5 block truncate text-xs font-medium text-[#777777]" dir="ltr">{social.username}</span></span><span aria-hidden className={`shrink-0 text-base font-light text-black transition duration-200 group-hover:text-brand-neon ${isArabic ? 'group-hover:-translate-x-0.5' : 'group-hover:translate-x-0.5'}`}>{isArabic ? '←' : '→'}</span></a>)}
         </div>
         <div aria-label={isArabic ? 'إحصائيات الثقة' : 'Trust statistics'} className="mt-4 grid overflow-hidden rounded-[20px] border border-[#ececec] bg-white shadow-[0_8px_30px_rgba(0,0,0,0.05)] sm:grid-cols-2 lg:grid-cols-5">
           {trustStats[locale].map((stat) => <div className="flex min-h-20 items-center justify-center border-b border-[#ececec] px-4 py-4 text-center text-sm font-black last:border-b-0 sm:border-e lg:border-b-0" key={stat}>{stat}</div>)}
