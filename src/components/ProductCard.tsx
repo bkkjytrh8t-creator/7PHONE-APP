@@ -1,7 +1,8 @@
-import Link from 'next/link';
-import {brandName, categoryName, formatPrice, productName} from '@/lib/format';
+import {brandName, categoryName, formatPrice, localizedProductList, localizedProductText, productName, productRamValues} from '@/lib/format';
 import {primaryProductImage} from '@/lib/productNormalize';
+import {productAvailabilityLabel, productIsOutOfStock} from '@/lib/stock';
 import type {Locale, Product, StoreSettings} from '@/lib/types';
+import {whatsappNotifyWhenAvailableUrl} from '@/lib/whatsapp';
 import {FallbackImage} from './FallbackImage';
 import {ProductLikeButton} from './ProductLikeButton';
 import {ProductQuickViewButton} from './ProductQuickViewButton';
@@ -22,9 +23,19 @@ export function ProductCard({
   const name = productName(product, locale);
   const image = primaryProductImage(product);
   const productHref = `/${locale}/product/${product.id}`;
+  const isOutOfStock = productIsOutOfStock(product);
+  const stockLabel = productAvailabilityLabel(product, locale);
+  const warranty = localizedProductText(product, 'warranty', locale);
+  const storage = localizedProductList(product, 'storage', locale);
+  const ram = productRamValues(product);
+  const specs = [
+    storage.length ? storage.join(' / ') : '',
+    ram.length ? `${locale === 'ar' ? 'رام' : 'RAM'} ${ram.join(' / ')}` : ''
+  ].filter(Boolean).join(' · ');
+  const purchaseLabel = locale === 'ar' ? 'اشترِ الآن' : 'Buy Now';
 
   return (
-    <article className="group overflow-hidden rounded-2xl border border-white/10 bg-white/[0.06] shadow-sm transition hover:-translate-y-0.5 hover:border-brand-neon/60 hover:shadow-neon">
+    <article className="product-card group flex h-full flex-col overflow-hidden rounded-[20px] border border-[#ececec] bg-white shadow-[0_8px_30px_rgba(0,0,0,0.05)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_14px_36px_rgba(0,0,0,0.08)]">
       <div className="relative">
         <ProductQuickViewButton
           product={product}
@@ -34,9 +45,9 @@ export function ProductCard({
           orderLabel={orderLabel}
           className="block w-full text-start"
         >
-          <div className="relative grid aspect-square place-items-center bg-[#111115] p-3">
-          <FallbackImage alt={name} className="h-full w-full rounded-xl object-cover" src={image}>
-            <div className="grid h-full w-full place-items-center rounded-xl bg-black text-center text-xs font-bold leading-5 text-white">
+          <div className="relative grid aspect-square place-items-center bg-[#f5f5f7] p-4">
+          <FallbackImage alt={name} className="h-full w-full rounded-2xl object-contain transition duration-300 group-hover:scale-[1.02]" src={image}>
+            <div className="grid h-full w-full place-items-center rounded-2xl bg-[#f2f2f3] text-center text-xs font-bold leading-5 text-[#111111]">
               <span>
                 <span className="mx-auto mb-3 block h-20 w-20 rounded-[24px] border border-brand-neon/40 bg-gradient-to-br from-white/20 via-black to-brand-neon/30" />
                 {name}
@@ -48,8 +59,8 @@ export function ProductCard({
               {product.badge.replace('-', ' ')}
             </span>
           )}
-          <span className={`absolute bottom-2.5 start-2.5 rounded-full px-2 py-1 text-[10px] font-black ${product.stock_status === 'available' ? 'bg-emerald-500/90 text-white' : 'bg-red-500/90 text-white'}`}>
-            {product.stock_status === 'available' ? 'متوفر الآن' : 'نفذ من المخزون'}
+          <span className={`absolute bottom-2.5 start-2.5 rounded-full px-2 py-1 text-[10px] font-black ${!isOutOfStock ? 'bg-emerald-500/90 text-white' : 'bg-red-500/90 text-white'}`}>
+            {stockLabel}
           </span>
           </div>
         </ProductQuickViewButton>
@@ -59,15 +70,16 @@ export function ProductCard({
           label={locale === 'ar' ? 'إعجاب بالمنتج' : 'Like product'}
         />
       </div>
-      <Link href={productHref} className="block">
-        <div className="space-y-2.5 p-3.5">
-          <div className="flex items-center justify-between gap-3 text-[11px] font-bold uppercase text-white/40">
+      <a href={productHref} className="block">
+        <div className="space-y-4 p-5">
+          <div className="flex items-center justify-between gap-3 text-[11px] font-bold uppercase text-[#888888]">
             <span>{brandName(product, locale)}</span>
             <span>{categoryName(product, locale)}</span>
           </div>
-          <h2 className="min-h-10 text-sm font-black leading-5 text-white">{name}</h2>
+          <h2 className="min-h-10 break-words text-sm font-black leading-5 text-[#111111] md:text-[15px]">{name}</h2>
           <ProductStats product={product} locale={locale} compact />
-          <p className="text-[11px] font-bold text-white/55">{product.warranty}</p>
+          {specs ? <p className="text-[11px] font-bold text-[#666666]">{specs}</p> : null}
+          <p className="text-[11px] font-bold text-[#666666]">{warranty}</p>
           <div className="flex items-end gap-2">
             <strong className="text-lg font-black text-brand-neon">{formatPrice(product.price_bhd, locale)}</strong>
             {product.old_price_bhd ? (
@@ -77,22 +89,25 @@ export function ProductCard({
             ) : null}
           </div>
         </div>
-      </Link>
-      <div className="grid grid-cols-2 gap-2 px-3.5 pb-3.5">
-        <ProductQuickViewButton
-          product={product}
-          locale={locale}
-          settings={settings}
-          label={locale === 'ar' ? 'عرض سريع' : 'Quick View'}
-          orderLabel={orderLabel}
-        />
-        {product.stock_status === 'available' ? (
-          <WhatsAppButton product={product} locale={locale} settings={settings} label={orderLabel} />
-        ) : (
-          <a className="grid h-10 place-items-center rounded-xl bg-white/10 text-xs font-black text-white" href={`https://wa.me/${settings.whatsapp}?text=${encodeURIComponent(`أبلغني عند توفر ${name}`)}`}>
-            أبلغني
+      </a>
+      <div className="product-card-actions mt-auto px-5 pb-5">
+        <div className="product-card-action-secondary">
+          <ProductQuickViewButton
+            product={product}
+            locale={locale}
+            settings={settings}
+            label={locale === 'ar' ? 'عرض سريع' : 'Quick View'}
+            orderLabel={purchaseLabel}
+          />
+        </div>
+        <div className="product-card-action-primary">
+          <WhatsAppButton cardPurchase product={product} locale={locale} settings={settings} label={purchaseLabel} />
+        </div>
+        {isOutOfStock ? (
+          <a className="product-card-stock-action grid h-10 place-items-center rounded-xl bg-white/10 px-3 text-center text-xs font-black text-white" href={whatsappNotifyWhenAvailableUrl(product, locale, settings)} target="_blank" rel="noreferrer">
+            {locale === 'ar' ? 'أبلغني عند توفر المنتج' : 'Notify Me When Available'}
           </a>
-        )}
+        ) : null}
       </div>
     </article>
   );

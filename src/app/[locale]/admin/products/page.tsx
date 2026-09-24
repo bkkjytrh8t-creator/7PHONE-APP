@@ -1,30 +1,18 @@
-import {AdminShell} from '@/components/AdminShell';
-import {AdminProductManager} from '@/components/AdminProductManager';
-import {getProducts} from '@/lib/data';
-import {brands, categories} from '@/lib/seed';
+import {AdminV2} from '@/components/admin-v2/AdminV2';
+import {hasAdminSession} from '@/lib/adminAuth';
 import type {Locale} from '@/lib/types';
+import {redirect} from 'next/navigation';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function AdminProductsPage({params}: {params: Promise<{locale: string}>}) {
   const {locale: localeParam} = await params;
   const locale = localeParam as Locale;
-  const products = await getProducts();
 
-  return (
-    <AdminShell locale={locale}>
-      <section className="rounded-lg border border-white/10 bg-zinc-950 p-5">
-        <h2 className="text-2xl font-black text-white">{locale === 'ar' ? 'المنتجات' : 'Products'}</h2>
-        <p className="mt-2 text-sm font-semibold text-zinc-400">
-          {locale === 'ar'
-            ? 'إضافة وتعديل وحفظ المنتجات دائماً عبر Supabase.'
-            : 'Add, edit, and save products permanently through Supabase.'}
-        </p>
-        <AdminProductManager
-          locale={locale}
-          seedProducts={products}
-          categories={categories}
-          brands={brands}
-        />
-      </section>
-    </AdminShell>
-  );
+  if (!(await hasAdminSession())) {
+    redirect(`/${locale}/admin/login`);
+  }
+
+  return <AdminV2 locale={locale} view="products" />;
 }

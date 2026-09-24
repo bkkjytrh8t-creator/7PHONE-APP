@@ -35,8 +35,8 @@ export function Logo({logoUrl}: {logoUrl?: string | null}) {
         </FallbackImage>
       </div>
       <div className="leading-tight">
-        <div className="text-xl font-black tracking-normal text-white">7Phone</div>
-        <div className="text-[12px] font-bold tracking-normal text-white/68">سفن فون · Bahrain</div>
+        <div className="text-xl font-black tracking-normal text-[#111111]">7Phone</div>
+        <div className="text-[12px] font-bold tracking-normal text-[#666666]">سفن فون · Bahrain</div>
       </div>
     </div>
   );

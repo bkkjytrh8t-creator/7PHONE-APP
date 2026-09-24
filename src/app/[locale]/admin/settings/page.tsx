@@ -1,16 +1,18 @@
-import {AdminShell} from '@/components/AdminShell';
-import {AdminSettingsManager} from '@/components/AdminSettingsManager';
-import {getSettings} from '@/lib/data';
+import {AdminV2} from '@/components/admin-v2/AdminV2';
+import {hasAdminSession} from '@/lib/adminAuth';
 import type {Locale} from '@/lib/types';
+import {redirect} from 'next/navigation';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function AdminSettingsPage({params}: {params: Promise<{locale: string}>}) {
   const {locale: localeParam} = await params;
   const locale = localeParam as Locale;
-  const settings = await getSettings();
 
-  return (
-    <AdminShell locale={locale}>
-      <AdminSettingsManager locale={locale} settings={settings} />
-    </AdminShell>
-  );
+  if (!(await hasAdminSession())) {
+    redirect(`/${locale}/admin/login`);
+  }
+
+  return <AdminV2 locale={locale} view="settings" />;
 }
