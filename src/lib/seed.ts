@@ -9,8 +9,13 @@ export const settings: StoreSettings = {
   mapsUrl: 'https://maps.google.com/?q=7phone%20Bahrain%20Jid%20Ali',
   instagram: 'https://instagram.com/7phone',
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://7phone.app',
+  benefitPayEnabled: false,
   benefitPayQr: '/images/benefitpay-qr.svg',
-  iban: 'BH67BBKU001000000000001234'
+  benefitPayAccountHolder: '',
+  benefitPayPhone: '',
+  iban: 'BH67BBKU001000000000001234',
+  benefitPayInstructionsAr: '',
+  benefitPayInstructionsEn: ''
 };
 
 export const categories: Category[] = [
@@ -84,6 +89,8 @@ export const products: Product[] = [
     images: ['/images/products/iphone17.svg', '/images/products/iphone17-alt.svg'],
     storage: ['256GB', '512GB', '1TB'],
     colors: ['Black', 'White', 'Desert Titanium'],
+    features: [],
+    tags: [],
     specifications_en: ['6.9-inch display', 'A-series chip', 'Triple camera system'],
     specifications_ar: ['شاشة 6.9 إنش', 'معالج A-series', 'نظام كاميرات ثلاثي'],
     likes: 24,
@@ -125,6 +132,8 @@ export const products: Product[] = [
     images: ['/images/products/galaxy-ultra.svg'],
     storage: ['256GB', '512GB'],
     colors: ['Titanium Gray', 'Black'],
+    features: [],
+    tags: [],
     specifications_en: ['Dynamic AMOLED display', 'Fast charging', 'Pro camera system'],
     specifications_ar: ['شاشة Dynamic AMOLED', 'شحن سريع', 'نظام كاميرات احترافي'],
     likes: 18,
@@ -163,6 +172,8 @@ export const products: Product[] = [
     images: ['/images/products/honor-magic.svg'],
     storage: ['256GB'],
     colors: ['Green', 'Black'],
+    features: [],
+    tags: [],
     specifications_en: ['OLED display', 'Long battery life', 'Fast charging'],
     specifications_ar: ['شاشة OLED', 'بطارية تدوم طويلاً', 'شحن سريع'],
     likes: 31,
@@ -204,6 +215,8 @@ export const products: Product[] = [
     images: ['/images/products/apple-watch.svg'],
     storage: ['GPS 45mm', 'Cellular 45mm'],
     colors: ['Midnight', 'Silver', 'Pink'],
+    features: [],
+    tags: [],
     specifications_en: ['Fitness tracking', 'Calls and notifications', 'Water resistant'],
     specifications_ar: ['تتبع النشاط والصحة', 'مكالمات وتنبيهات', 'مقاومة للماء'],
     likes: 15,

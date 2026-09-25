@@ -1,4 +1,5 @@
-import {formatPrice, productName} from '@/lib/format';
+import {formatPrice, localizedProductText, productName} from '@/lib/format';
+import {productAvailabilityLabel} from '@/lib/stock';
 import type {Locale, Product} from '@/lib/types';
 
 export function ProductComparison({
@@ -11,24 +12,37 @@ export function ProductComparison({
   locale: Locale;
 }) {
   const products = [product, ...related.filter((item) => item.id !== product.id).slice(0, 2)];
+  const text = {
+    title: locale === 'ar' ? 'مقارنة سريعة' : 'Quick comparison',
+    item: locale === 'ar' ? 'البند' : 'Item',
+    price: locale === 'ar' ? 'السعر' : 'Price',
+    display: locale === 'ar' ? 'الشاشة' : 'Display',
+    camera: locale === 'ar' ? 'الكاميرا' : 'Camera',
+    battery: locale === 'ar' ? 'البطارية' : 'Battery',
+    processor: locale === 'ar' ? 'المعالج' : 'Processor',
+    warranty: locale === 'ar' ? 'الضمان' : 'Warranty',
+    availability: locale === 'ar' ? 'التوفر' : 'Availability',
+    available: locale === 'ar' ? 'متوفر' : 'Available',
+    out: locale === 'ar' ? 'غير متوفر' : 'Out of stock'
+  };
   const rows = [
-    {label: 'السعر', value: (item: Product) => formatPrice(item.price_bhd, locale)},
-    {label: 'الشاشة', value: (item: Product) => item.comparison.display},
-    {label: 'الكاميرا', value: (item: Product) => item.comparison.camera},
-    {label: 'البطارية', value: (item: Product) => item.comparison.battery},
-    {label: 'المعالج', value: (item: Product) => item.comparison.processor},
-    {label: 'الضمان', value: (item: Product) => item.warranty},
-    {label: 'التوفر', value: (item: Product) => item.stock_status === 'available' ? 'متوفر الآن' : 'نفذ من المخزون'}
+    {label: text.price, value: (item: Product) => formatPrice(item.price_bhd, locale)},
+    {label: text.display, value: (item: Product) => localizedProductText(item, 'comparison_display', locale, item.comparison.display)},
+    {label: text.camera, value: (item: Product) => localizedProductText(item, 'comparison_camera', locale, item.comparison.camera)},
+    {label: text.battery, value: (item: Product) => localizedProductText(item, 'comparison_battery', locale, item.comparison.battery)},
+    {label: text.processor, value: (item: Product) => localizedProductText(item, 'comparison_processor', locale, item.comparison.processor)},
+    {label: text.warranty, value: (item: Product) => localizedProductText(item, 'warranty', locale)},
+    {label: text.availability, value: (item: Product) => productAvailabilityLabel(item, locale)}
   ];
 
   return (
     <section className="rounded-2xl border border-white/10 bg-white/[0.06] p-4 text-white md:p-5">
-      <h2 className="text-2xl font-black">مقارنة سريعة</h2>
+      <h2 className="text-2xl font-black">{text.title}</h2>
       <div className="mt-4 overflow-x-auto">
         <table className="w-full min-w-[640px] border-separate border-spacing-0 text-sm">
           <thead>
             <tr>
-              <th className="rounded-tr-xl bg-black p-3 text-start text-white/60">البند</th>
+              <th className="rounded-tr-xl bg-black p-3 text-start text-white/60">{text.item}</th>
               {products.map((item, index) => (
                 <th className={`${index === products.length - 1 ? 'rounded-tl-xl' : ''} bg-black p-3 text-start`} key={item.id}>
                   {productName(item, locale)}

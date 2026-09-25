@@ -2,11 +2,11 @@ import type {StoreSettings} from '@/lib/types';
 
 export function Footer({settings}: {settings: StoreSettings}) {
   return (
-    <footer className="bg-brand-black px-4 py-10 text-white">
-      <div className="mx-auto grid max-w-7xl gap-6 text-sm md:grid-cols-4">
+    <footer className="border-t border-[#ececec] bg-[#f0f1f3] px-4 py-14 text-[#111111]">
+      <div className="mx-auto grid max-w-7xl gap-8 text-sm md:grid-cols-4 md:items-center">
         <div>
           <div className="text-xl font-black">7Phone ©</div>
-          <p className="mt-2 text-white/60">7phone.app</p>
+          <p className="mt-2 text-[#666666]">7phone.app</p>
         </div>
         <a href={`tel:${settings.phoneSales}`} className="font-bold hover:text-brand-neon">
           {settings.phoneSales}

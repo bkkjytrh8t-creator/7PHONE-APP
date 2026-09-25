@@ -141,5 +141,4 @@ Built for non-technical staff — simple forms, no code.
 - Online payments / checkout
 - Advanced filters (price range, specs)
 - Customer accounts, wishlists synced to login
-- Stock/inventory sync with POS
 - Analytics dashboard

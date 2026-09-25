@@ -6,12 +6,16 @@ export function FallbackImage({
   src,
   alt,
   className,
-  children
+  children,
+  loading,
+  onLoad
 }: {
   src?: string | null;
   alt: string;
   className: string;
   children: React.ReactNode;
+  loading?: 'eager' | 'lazy';
+  onLoad?: () => void;
 }) {
   const [hasError, setHasError] = useState(false);
 
@@ -23,5 +27,5 @@ export function FallbackImage({
     return <>{children}</>;
   }
 
-  return <img alt={alt} className={className} src={src} onError={() => setHasError(true)} />;
+  return <img alt={alt} className={className} decoding="async" loading={loading} src={src} onError={() => setHasError(true)} onLoad={onLoad} />;
 }

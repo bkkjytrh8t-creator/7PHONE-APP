@@ -1,94 +1,94 @@
-import Link from 'next/link';
-import {redirect} from 'next/navigation';
-import {hasAdminSession} from '@/lib/adminAuth';
-import type {Locale} from '@/lib/types';
-import {AdminSignOutButton} from './AdminSignOutButton';
+'use client';
 
-const labels = {
-  en: {
-    title: '7Phone Admin',
-    subtitle: 'Controlled store management',
-    storage: 'Supabase is connected: products, images, logo, and store settings save permanently.',
-    dashboard: 'Dashboard',
-    products: 'Products',
-    categories: 'Categories',
-    settings: 'Settings'
-  },
-  ar: {
-    title: 'لوحة 7Phone',
-    subtitle: 'إدارة المتجر بشكل محكم',
-    storage: 'Supabase متصل: المنتجات والصور واللوغو وإعدادات المتجر تحفظ دائماً.',
-    dashboard: 'الرئيسية',
-    products: 'المنتجات',
-    categories: 'التصنيفات',
-    settings: 'الإعدادات'
-  }
+import Link from 'next/link';
+import {usePathname} from 'next/navigation';
+import type {Locale} from '@/lib/types';
+
+type NavItem = {
+  labelEn: string;
+  labelAr: string;
+  href: string;
+  icon?: string;
 };
 
-export async function AdminShell({
+const navItems: NavItem[] = [
+  {labelEn: 'Dashboard', labelAr: 'لوحة التحكم', href: '/admin/products'},
+  {labelEn: 'Products', labelAr: 'المنتجات', href: '/admin/products'},
+  {labelEn: 'Orders', labelAr: 'الطلبات', href: '/admin/leads'},
+  {labelEn: 'Categories', labelAr: 'الأقسام', href: '/admin/categories'},
+  {labelEn: 'Brands', labelAr: 'الماركات', href: '/admin/brands'},
+  {labelEn: 'Homepage', labelAr: 'الصفحة الرئيسية', href: '/admin/homepage'},
+  {labelEn: 'Store Settings', labelAr: 'إعدادات المتجر', href: '/admin/settings'},
+  {labelEn: 'Media Library', labelAr: 'مكتبة الوسائط', href: '/admin/media'},
+  {labelEn: 'Users & Roles', labelAr: 'المستخدمون والصلاحيات', href: '/admin/users'},
+  {labelEn: 'Activity Log', labelAr: 'سجل النشاط', href: '/admin/activity'}
+];
+
+function buttonClass(active: boolean) {
+  return active
+    ? 'flex min-h-10 items-center rounded-md bg-brand-neon px-3 py-2 text-sm font-black text-white'
+    : 'flex min-h-10 items-center rounded-md border border-white/10 bg-black px-3 py-2 text-sm font-black text-zinc-300 transition hover:border-brand-neon/60 hover:text-white';
+}
+
+export function AdminShell({
   locale,
-  children
+  title,
+  subtitle,
+  children,
+  actions
 }: {
   locale: Locale;
+  title: string;
+  subtitle?: string;
   children: React.ReactNode;
+  actions?: React.ReactNode;
 }) {
-  const isAllowed = await hasAdminSession();
-
-  if (!isAllowed) {
-    redirect(`/${locale}/admin/login`);
-  }
-
-  const copy = labels[locale];
-  const dir = locale === 'ar' ? 'rtl' : 'ltr';
-  const otherLocale = locale === 'ar' ? 'en' : 'ar';
+  const pathname = usePathname();
+  const isArabic = locale === 'ar';
+  const otherLocale = isArabic ? 'en' : 'ar';
+  const otherPath = pathname.replace(/^\/(ar|en)(?=\/)/, `/${otherLocale}`);
 
   return (
-    <main className="min-h-screen bg-[#050506] text-white" dir={dir}>
-      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-4 px-4 py-4 md:px-6">
-        <header className="rounded-lg border border-white/10 bg-zinc-950/90 p-4 shadow-neon">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <main className="min-h-screen bg-[#050506] text-white" dir={isArabic ? 'rtl' : 'ltr'}>
+      <div className="grid min-h-screen lg:grid-cols-[260px_minmax(0,1fr)]">
+        <aside className="border-b border-white/10 bg-zinc-950 p-4 lg:border-b-0 lg:border-e lg:border-white/10">
+          <div className="flex items-center justify-between gap-3 lg:grid">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-brand-neon">7phone.app</p>
-              <h1 className="mt-1 text-2xl font-black text-white md:text-3xl">{copy.title}</h1>
-              <p className="mt-1 text-sm font-semibold text-zinc-400">{copy.subtitle}</p>
+              <p className="text-xs font-black uppercase text-brand-neon">7Phone Admin</p>
+              <h1 className="mt-1 text-xl font-black">{isArabic ? 'إدارة المتجر' : 'Store Admin'}</h1>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Link
-                className="rounded-md border border-white/10 px-3 py-2 text-sm font-black text-zinc-200 hover:border-brand-neon"
-                href={`/${otherLocale}/admin`}
-              >
-                {otherLocale.toUpperCase()}
-              </Link>
-              <Link
-                className="rounded-md border border-white/10 px-3 py-2 text-sm font-black text-zinc-200 hover:border-brand-neon"
-                href="/"
-              >
-                7phone.app
-              </Link>
-              <AdminSignOutButton locale={locale} />
-            </div>
+            <Link className="rounded-md border border-white/10 bg-black px-3 py-2 text-sm font-black text-zinc-200" href={otherPath}>
+              {isArabic ? 'English' : 'العربية'}
+            </Link>
           </div>
-          <nav className="mt-4 flex gap-2 overflow-x-auto">
-            {[
-              [copy.dashboard, `/${locale}/admin`],
-              [copy.products, `/${locale}/admin/products`],
-              [copy.categories, `/${locale}/admin/categories`],
-              [copy.settings, `/${locale}/admin/settings`]
-            ].map(([label, href]) => (
-              <Link
-                className="shrink-0 rounded-md bg-white/5 px-3 py-2 text-sm font-black text-zinc-200 hover:bg-brand-neon hover:text-white"
-                href={href}
-                key={href}
-              >
-                {label}
-              </Link>
-            ))}
+          <nav className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
+            {navItems.map((item) => {
+              const href = `/${locale}${item.href}`;
+              const active = pathname === href || pathname.startsWith(`${href}/`);
+              return (
+                <Link className={buttonClass(active)} href={href} key={item.href}>
+                  {item.icon ? <span aria-hidden="true" className="me-2 shrink-0 text-base">{item.icon}</span> : null}
+                  <span>{isArabic ? item.labelAr : item.labelEn}</span>
+                </Link>
+              );
+            })}
           </nav>
-        </header>
-        <div className="rounded-lg border border-brand-neon/35 bg-brand-neon/10 px-4 py-3 text-sm font-bold text-pink-100">
-          {copy.storage}
-        </div>
-        {children}
+        </aside>
+
+        <section className="min-w-0">
+          <header className="border-b border-white/10 bg-black px-4 py-4">
+            <div className="mx-auto flex max-w-[1500px] flex-wrap items-center justify-between gap-3">
+              <div className="min-w-0">
+                <h2 className="truncate text-2xl font-black md:text-3xl">{title}</h2>
+                {subtitle ? <p className="mt-1 text-sm font-bold text-zinc-400">{subtitle}</p> : null}
+              </div>
+              <div className="flex flex-wrap gap-2">{actions}</div>
+            </div>
+          </header>
+          <div className="mx-auto grid max-w-[1500px] gap-5 px-4 py-5">
+            {children}
+          </div>
+        </section>
       </div>
     </main>
   );

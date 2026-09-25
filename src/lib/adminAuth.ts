@@ -2,9 +2,11 @@ import 'server-only';
 
 import crypto from 'crypto';
 import {cookies} from 'next/headers';
+import type {ResponseCookie} from 'next/dist/compiled/@edge-runtime/cookies';
 
-const sessionCookieName = 'sevenphone_admin_session';
+export const sessionCookieName = 'sevenphone_admin_session';
 const defaultEmail = 'admin@7phone.app';
+const defaultPhone = '39000056';
 const defaultPasswordSalt = '7phone-admin-2026-temp';
 const defaultPasswordHash = 'b264302818905ff7ca8cef450ae25ec9c3467884bfe562b2fd47a645f218deae';
 const defaultSessionSecret = 'temporary-7phone-admin-session-secret-change-in-vercel';
@@ -12,6 +14,14 @@ const sessionMaxAgeSeconds = 60 * 60 * 8;
 
 export function getAdminEmail() {
   return process.env.ADMIN_EMAIL || defaultEmail;
+}
+
+export function getAdminPhone() {
+  return process.env.ADMIN_PHONE || defaultPhone;
+}
+
+function normalizeIdentifier(identifier: string) {
+  return identifier.trim().toLowerCase();
 }
 
 function getPasswordSalt() {
@@ -45,11 +55,13 @@ function sign(value: string) {
   return crypto.createHmac('sha256', getSessionSecret()).update(value).digest('hex');
 }
 
-export function validateAdminCredentials(email: string, password: string) {
-  const isEmailValid = email.trim().toLowerCase() === getAdminEmail().toLowerCase();
+export function validateAdminCredentials(identifier: string, password: string) {
+  const normalizedIdentifier = normalizeIdentifier(identifier);
+  const allowedIdentifiers = [getAdminEmail(), getAdminPhone()].filter(Boolean).map(normalizeIdentifier);
+  const isIdentifierValid = allowedIdentifiers.includes(normalizedIdentifier);
   const isPasswordValid = safeCompare(hashPassword(password.trim()), getPasswordHash());
 
-  return isEmailValid && isPasswordValid;
+  return isIdentifierValid && isPasswordValid;
 }
 
 export function createAdminSessionValue() {
@@ -90,16 +102,20 @@ export async function hasAdminSession() {
   return isAdminSessionValid(cookieStore.get(sessionCookieName)?.value);
 }
 
-export async function setAdminSessionCookie() {
-  const cookieStore = await cookies();
-
-  cookieStore.set(sessionCookieName, createAdminSessionValue(), {
+export function adminSessionCookieOptions(): Partial<ResponseCookie> {
+  return {
     httpOnly: true,
-    sameSite: 'strict',
+    sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
     path: '/',
     maxAge: sessionMaxAgeSeconds
-  });
+  };
+}
+
+export async function setAdminSessionCookie() {
+  const cookieStore = await cookies();
+
+  cookieStore.set(sessionCookieName, createAdminSessionValue(), adminSessionCookieOptions());
 }
 
 export async function clearAdminSessionCookie() {

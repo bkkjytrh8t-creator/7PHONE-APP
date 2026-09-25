@@ -1,16 +1,18 @@
-import {AdminDashboard} from '@/components/AdminDashboard';
-import {AdminShell} from '@/components/AdminShell';
-import {getProducts, getSettings} from '@/lib/data';
+import {AdminV2} from '@/components/admin-v2/AdminV2';
+import {hasAdminSession} from '@/lib/adminAuth';
 import type {Locale} from '@/lib/types';
+import {redirect} from 'next/navigation';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function AdminPage({params}: {params: Promise<{locale: string}>}) {
   const {locale: localeParam} = await params;
   const locale = localeParam as Locale;
-  const [products, settings] = await Promise.all([getProducts(), getSettings()]);
 
-  return (
-    <AdminShell locale={locale}>
-      <AdminDashboard locale={locale} products={products} settings={settings} />
-    </AdminShell>
-  );
+  if (!(await hasAdminSession())) {
+    redirect(`/${locale}/admin/login`);
+  }
+
+  return <AdminV2 locale={locale} view="dashboard" />;
 }
