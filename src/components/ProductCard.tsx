@@ -7,7 +7,6 @@ import {FallbackImage} from './FallbackImage';
 import {ProductLikeButton} from './ProductLikeButton';
 import {ProductQuickViewButton} from './ProductQuickViewButton';
 import {ProductStats} from './ProductStats';
-import {WhatsAppButton} from './WhatsAppButton';
 
 export function ProductCard({
   product,
@@ -99,9 +98,6 @@ export function ProductCard({
             label={locale === 'ar' ? 'عرض سريع' : 'Quick View'}
             orderLabel={purchaseLabel}
           />
-        </div>
-        <div className="product-card-action-primary">
-          <WhatsAppButton cardPurchase product={product} locale={locale} settings={settings} label={purchaseLabel} />
         </div>
         {isOutOfStock ? (
           <a className="product-card-stock-action grid h-10 place-items-center rounded-xl bg-white/10 px-3 text-center text-xs font-black text-white" href={whatsappNotifyWhenAvailableUrl(product, locale, settings)} target="_blank" rel="noreferrer">

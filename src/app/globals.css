@@ -96,12 +96,7 @@ textarea {
 
 .product-card-action-secondary {
   min-width: 0;
-  flex: 0 1 calc(38% - 4px);
-}
-
-.product-card-action-primary {
-  min-width: 0;
-  flex: 1 1 calc(62% - 4px);
+  flex: 1 1 100%;
 }
 
 .product-card-stock-action {
@@ -113,8 +108,7 @@ textarea {
     flex-direction: column;
   }
 
-  .product-card-action-secondary,
-  .product-card-action-primary {
+  .product-card-action-secondary {
     width: 100%;
     flex-basis: auto;
   }
